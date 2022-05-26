@@ -1,0 +1,36 @@
+# chopin open
+alias copen="chopin -o \"\$(fd --type f --hidden --exclude .git . './'|fzf --prompt='open>' --preview 'bat --color=always {}' --select-1 --exit-0|sed 's/ /\\ /g')\""
+alias copenI="chopin -o \"\$(fd --type f --hidden --exclude .git . './' -I|fzf --prompt='open>' --preview 'bat --color=always {}' --select-1 --exit-0|sed 's/ /\\ /g')\""
+bindkey -s '^F' 'copen\n'
+bindkey -s '^F^I' 'copenI\n'
+
+# chopin exec
+alias cexec="chopin -e \"\$(fd -e sh -e jl -e py -e tex -e c -e cpp -e go -e scala -e java -e rs -e sql -e log -e out . './'|fzf --prompt='exec>'  --preview 'bat --color=always {}' --select-1 --exit-0|sed 's/ /\\ /g')\""
+alias cexecI="chopin -e \"\$(fd -e sh -e jl -e py -e tex -e c -e cpp -e go -e scala -e java -e rs -e sql -e log -e out . './' -I|fzf --prompt='exec>'  --preview 'bat --color=always {}' --select-1 --exit-0|sed 's/ /\\ /g')\""
+bindkey -s '^X' 'cexec\n'
+bindkey -s '^X^I' 'cexecI\n'
+
+# chopin cp
+alias ccp="chopin -c \"\$(fd --type f --hidden --exclude .git . './'|fzf --prompt='cp>'  --preview 'bat --color=always {}' --select-1 --exit-0|sed 's/ /\\ /g')\""
+bindkey -s "^N" 'ccp\n'
+
+# chopin mv
+alias cmv="chopin -m \"\$(fd --type f --hidden --exclude .git . './'|fzf --prompt='mv>' --preview 'bat --color=always {}' --select-1 --exit-0|sed 's/ /\\ /g')\""
+bindkey -s "^V" 'cmv\n'
+
+# chopin rm
+alias crm="chopin -r \"\$(fd --type f --hidden --exclude .git . './'|fzf --prompt='rm>' --preview 'bat --color=always {}' --select-1 --exit-0|sed 's/ /\\ /g')\""
+alias crmI="chopin -r \"\$(fd --type f --hidden --exclude .git . './' -I|fzf --prompt='rm>' --preview 'bat --color=always {}' --select-1 --exit-0|sed 's/ /\\ /g')\""
+bindkey -s "^Z" 'crm\n'
+bindkey -s "^Z^I" 'crmI\n'
+
+# chopin open books
+alias copen-book="chopin -o \"\$(fd -e pdf -e epub -e djvu -e mobi --exclude ~/go . '$HOME/obsidian/docs'|fzf --prompt='books>' --reverse --select-1 --exit-0|sed 's/ /\\ /g')\";exit"
+bindkey -s '^P' 'copen-book\n'
+
+# chopin open wiki
+alias copen-wiki="chopin -o \"\$(fd --type f --hidden --exclude .git . '$HOME/obsidian/wiki'|fzf --prompt='wikis>' --preview 'bat --color=always {}' --select-1 --exit-0|sed 's/ /\\ /g')\""
+bindkey -s '^W' 'copen-wiki\n'
+
+# chopin open media
+alias copen-media="chopin -o \"\$(fd -e jpg -e jpeg -e png -e gif -e bmp -e tiff -e mp3 -e flac -e mkv -e avi -e mp4 . '$HOME'|fzf --prompt='medias>' --reverse --select-1 --exit-0|sed 's/ /\\ /g')\";exit"

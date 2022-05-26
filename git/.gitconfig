@@ -1,0 +1,14 @@
+[user]
+	name = lowking
+	email = lowking@sina.cn
+[core]
+	autocrlf = input
+[http]
+postBuffer = 5368709120
+[filter "lfs"]
+	smudge = git-lfs smudge -- %f
+	process = git-lfs filter-process
+	required = true
+	clean = git-lfs clean -- %f
+[merge "ours"]
+	driver = true

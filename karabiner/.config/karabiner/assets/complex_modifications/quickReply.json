@@ -1,0 +1,26 @@
+{
+  "title": "Handle notifications",
+  "rules": [
+    {
+      "description": "Handle notifications",
+      "manipulators": [
+        {
+          "type": "basic",
+          "from": {
+            "key_code": "1",
+            "modifiers": {
+              "mandatory": [
+                "right_shift"
+              ]            }
+          },
+          "to": [
+            {
+              "shell_command": "osascript -l JavaScript -e 'ObjC.import(\"CoreGraphics\");$.CGWarpMouseCursorPosition({x:0 , y:0});$.CGWarpMouseCursorPosition({x:$.CGDisplayPixelsWide($.CGMainDisplayID()) - 50, y:90});Application(\"System Events\").processes[\"Notification Center\"].windows()[0].buttons[\"Reply\"].click();'"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+
