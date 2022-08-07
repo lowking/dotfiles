@@ -1,0 +1,3 @@
+shopt -s direxpand
+shopt -s expand_aliases  
+source ~/.bash_alias

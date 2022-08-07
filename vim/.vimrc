@@ -1,3 +1,6 @@
+let $BASH_ENV="~/.vim_bash_env"
+set shellcmdflag=-O\ expand_aliases\ -c
+
 set ts=4
 set softtabstop=4
 set shiftwidth=4
@@ -5,3 +8,4 @@ set expandtab
 set autoindent
 set nu
 set relativenumber
+
