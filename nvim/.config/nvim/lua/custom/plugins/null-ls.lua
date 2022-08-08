@@ -9,7 +9,9 @@ local b = null_ls.builtins
 local sources = {
   -- webdev stuff
   b.formatting.deno_fmt,
-  b.formatting.prettier,
+  b.formatting.prettier.with {
+    extra_args = { "--tab-width", "4" },
+  },
 
   -- Lua
   b.formatting.stylua,
