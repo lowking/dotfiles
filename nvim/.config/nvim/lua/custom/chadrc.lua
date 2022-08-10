@@ -23,6 +23,7 @@ M.plugins = {
       end,
     },
     ["mg979/vim-visual-multi"] = {},
+    ["ianding1/leetcode.vim"] = {},
   },
   override = {
     ["kyazdani42/nvim-tree.lua"] = pluginConfs.nvimtree,
