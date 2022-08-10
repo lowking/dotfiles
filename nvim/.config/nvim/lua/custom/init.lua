@@ -2,11 +2,12 @@
 -- load your options globals, autocmds here or anything .__.
 -- you can even override default options here (core/options.lua)
 
+vim.cmd[[hi NvimTreeNormal guibg=NONE ctermbg=NONE]]
 -- neovide
 vim.g.neovide_refresh_rate = 90
 vim.g.neovide_refresh_rate_idle = 90
 -- 透明度
-vim.g.neovide_transparency = 0.97
+vim.g.neovide_transparency = 1
 -- 左上角监视器
 vim.g.neovide_profiler = false
 -- 动画长度
@@ -32,7 +33,7 @@ vim.api.nvim_set_keymap("", "<D-v>", "+p<CR>", { noremap = true, silent = false 
 vim.api.nvim_set_keymap("!", "<D-v>", "<C-R>+", { noremap = true, silent = false })
 vim.api.nvim_set_keymap("t", "<D-v>", "<C-R>+", { noremap = true, silent = false })
 vim.api.nvim_set_keymap("v", "<D-v>", "<C-R>+", { noremap = true, silent = false })
-vim.o.tabstop = 8
+vim.o.tabstop = 4
 vim.o.softtabstop = 4
 vim.o.shiftwidth = 4
 
