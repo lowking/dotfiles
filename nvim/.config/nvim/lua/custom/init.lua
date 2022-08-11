@@ -5,7 +5,7 @@
 vim.cmd[[hi NvimTreeNormal guibg=NONE ctermbg=NONE]]
 -- neovide
 vim.g.neovide_refresh_rate = 90
-vim.g.neovide_refresh_rate_idle = 90
+vim.g.neovide_refresh_rate_idle = 5
 -- 透明度
 vim.g.neovide_transparency = 1
 -- 左上角监视器
