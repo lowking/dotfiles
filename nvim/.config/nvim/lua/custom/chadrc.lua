@@ -24,6 +24,7 @@ M.plugins = {
     },
     ["mg979/vim-visual-multi"] = {},
     ["ianding1/leetcode.vim"] = {},
+    ["easymotion/vim-easymotion"] = {},
   },
   override = {
     ["kyazdani42/nvim-tree.lua"] = pluginConfs.nvimtree,

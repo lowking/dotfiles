@@ -4,18 +4,18 @@
 
 vim.cmd[[hi NvimTreeNormal guibg=NONE ctermbg=NONE]]
 -- neovide
-vim.g.neovide_refresh_rate = 90
-vim.g.neovide_refresh_rate_idle = 5
+vim.g.neovide_refresh_rate = 60
+vim.g.neovide_refresh_rate_idle = 60
 -- 透明度
 vim.g.neovide_transparency = 1
 -- 左上角监视器
-vim.g.neovide_profiler = false
+vim.g.neovide_profiler = true
 -- 动画长度
-vim.g.neovide_cursor_animation_length = 0.1
+-- vim.g.neovide_cursor_animation_length = 0.1
 -- 尾巴长度
-vim.g.neovide_cursor_trail_length = 0.3
+-- vim.g.neovide_cursor_trail_length = 0.3
 -- 抗锯齿
-vim.g.neovide_cursor_antialiasing = true
+-- vim.g.neovide_cursor_antialiasing = true
 -- 未聚焦时候的光标边框
 vim.g.neovide_cursor_unfocused_outline_width = 0
 -- 粒子效果: railgun torpedo pixiedust sonicboom ripple wireframe
