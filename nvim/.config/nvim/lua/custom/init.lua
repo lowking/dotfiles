@@ -9,7 +9,7 @@ vim.g.neovide_refresh_rate_idle = 60
 -- 透明度
 vim.g.neovide_transparency = 1
 -- 左上角监视器
-vim.g.neovide_profiler = true
+-- vim.g.neovide_profiler = true
 -- 动画长度
 -- vim.g.neovide_cursor_animation_length = 0.1
 -- 尾巴长度
@@ -47,8 +47,8 @@ vim.g.leetcode_china = 1
 vim.g.leetcode_browser = "chrome"
 vim.g.leetcode_solution_filetype = "java"
 vim.g.loaded_python3_provider = 1
-vim.g.python_host_prog = "/usr/bin/python"
-vim.g.python3_host_prog = "/usr/local/bin/python3"
+-- vim.g.python_host_prog = "/usr/bin/python"
+-- vim.g.python3_host_prog = "/usr/local/bin/python3"
 -- vim.g.loaded_ruby_provider = 1
 -- vim.g.loaded_node_provider = 1
 -- vim.g.loaded_perl_provider = 1

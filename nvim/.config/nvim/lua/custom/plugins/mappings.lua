@@ -16,7 +16,7 @@ M.multipleCursors = {
 		["S<D-l>"] = { "<Plug>(VM-Select-All)", "Multi cursor start" },
 		["<D-/>"] = {
 			function()
-				require("Comment.api").toggle_current_linewise()
+				require("Comment.api").toggle.linewise.current()
 			end,
 			"蘒  toggle comment",
 		},
