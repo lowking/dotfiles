@@ -23,8 +23,13 @@ M.plugins = {
       end,
     },
     ["mg979/vim-visual-multi"] = {},
-    ["ianding1/leetcode.vim"] = {},
+    -- ["ianding1/leetcode.vim"] = {},
     ["easymotion/vim-easymotion"] = {},
+    ["kylechui/nvim-surround"] = {
+      config = function()
+        require "custom.plugins.surround"
+      end,
+    },
   },
   override = {
     ["kyazdani42/nvim-tree.lua"] = pluginConfs.nvimtree,
