@@ -20,3 +20,4 @@ export webh=/Users/lowking/git-webhook
 export espansop=/Users/lowking/Library/Application\ Support/espanso/packages
 export steamdb=/Users/lowking/Library/Application\ Support/Steam/userdata
 export workflow=/Users/lowking/Library/Caches/com.runningwithcrayons.Alfred/Workflow\ Data
+export nv=/Users/lowking/.config/NvChad
