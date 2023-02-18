@@ -24,7 +24,7 @@
       ]
     },
     {
-      "description": "短按 左 Command (⌘) 切换 ZH",
+      "description": "短按 左 Command (⌘) 切换 EN",
       "manipulators": [
         {
           "type": "basic",
@@ -40,7 +40,7 @@
           "to_if_alone": [
             {
               "select_input_source": {
-                "language": "zh*"
+                "language": "en"
               }
             }
           ],
@@ -82,7 +82,7 @@
       ]
     },
     {
-      "description": "短按 左 Option (⌥) 切换 EN",
+      "description": "短按 左 Option (⌥) 切换 ZH",
       "manipulators": [
         {
           "type": "basic",
@@ -91,7 +91,7 @@
               "type": "input_source_if",
               "input_sources": [
                 {
-                  "language": "zh*"
+                  "language": "en"
                 }
               ]
             }
@@ -108,7 +108,7 @@
           "to_if_alone": [
             {
               "select_input_source": {
-                "language": "en"
+                "language": "zh*"
               }
             }
           ]
