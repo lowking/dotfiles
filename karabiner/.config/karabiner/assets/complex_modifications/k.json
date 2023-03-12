@@ -86,16 +86,6 @@
       "manipulators": [
         {
           "type": "basic",
-          "conditions": [
-            {
-              "type": "input_source_if",
-              "input_sources": [
-                {
-                  "language": "en"
-                }
-              ]
-            }
-          ],
           "from": {
             "key_code": "left_option"
           },
