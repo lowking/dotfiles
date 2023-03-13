@@ -1,0 +1,6 @@
+gui:
+  language: 'en'
+  showBottomLine: false
+
+os:
+  openCommand: 'open -a /Applications/Sublime\ Text.app "{{filename}}"'
