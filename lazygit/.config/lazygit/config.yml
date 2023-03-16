@@ -4,3 +4,9 @@ gui:
 
 os:
   openCommand: 'open -a /Applications/Sublime\ Text.app "{{filename}}"'
+
+customCommands:
+  - key: 'F'
+    command: 'git fetch --all'
+    context: 'files'
+    description: 'fetch all remote repos'
