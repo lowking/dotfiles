@@ -126,6 +126,14 @@ source ~/.iterm2_shell_integration.zsh
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
 
-# config z
-. /Users/lowking/z/z.sh
+# init zplug
+source ~/.zplug/init.zsh
 
+# config z and fz
+# . /Users/lowking/z/z.sh
+zplug "changyuheng/fz", defer:1
+zplug "rupa/z", use:z.sh
+export FZ_SUBDIR_CMD=fz
+
+# Then, source plugins and add commands to $PATH
+zplug load
