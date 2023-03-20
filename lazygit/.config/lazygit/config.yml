@@ -10,3 +10,28 @@ customCommands:
     command: 'git fetch --all'
     context: 'files'
     description: 'fetch all remote repos'
+
+  - key: 'F'
+    command: 'git fetch --all'
+    context: 'localBranches'
+    description: 'fetch all remote repos'
+
+  - key: 'F'
+    command: 'git fetch --all'
+    context: 'remotes'
+    description: 'fetch all remote repos'
+
+  - key: 'F'
+    command: 'git fetch --all'
+    context: 'remoteBranches'
+    description: 'fetch all remote repos'
+
+  - key: 'F'
+    command: 'git fetch --all'
+    context: 'commits'
+    description: 'fetch all remote repos'
+
+  - key: 'F'
+    command: 'git fetch --all'
+    context: 'tags'
+    description: 'fetch all remote repos'
