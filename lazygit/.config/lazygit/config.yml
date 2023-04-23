@@ -1,4 +1,14 @@
 gui:
+  theme:
+    activeBorderColor:
+      - default
+      - bold
+    inactiveBorderColor:
+      - '#2c2e34'
+    selectedLineBgColor:
+      - '#313542'
+    selectedRangeBgColor:
+      - '#313542'
   language: 'en'
   showBottomLine: false
 
