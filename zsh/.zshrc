@@ -112,6 +112,7 @@ setopt no_nomatch
 source /Users/lowking/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 source /Users/lowking/.bash_profile
 source /Users/lowking/.npmrc
+source /Users/lowking/.inputrc
 #source /sw/bin/init.sh
 plugins=(zsh-syntax-highlighting)
 ENABLE_CORRECTION="true"
