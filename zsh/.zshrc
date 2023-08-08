@@ -134,6 +134,7 @@ source ~/.zplug/init.zsh
 # . /Users/lowking/z/z.sh
 zplug "changyuheng/fz", defer:1
 zplug "rupa/z", use:z.sh
+zplug "hlissner/zsh-autopair", defer:2
 export FZ_SUBDIR_CMD=fz
 
 # Then, source plugins and add commands to $PATH
