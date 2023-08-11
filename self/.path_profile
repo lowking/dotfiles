@@ -1,6 +1,7 @@
 # 一些目录别名
 export cloud='/Users/lowking/Library/Mobile Documents/com~apple~CloudDocs'
 export subpkg='/Users/lowking/Library/Application Support/Sublime Text 3/Packages'
+export surge='/Users/lowking/Library/Mobile\ Documents/iCloud~com~nssurge~inc/Documents'
 export minio='/Users/lowking/minio'
 export sa='/Users/lowking/Library/Mobile Documents/iCloud~dk~simonbs~Scriptable/Documents'
 export gitprefix='git@gogs.mynetgear.com:lowking'
@@ -11,7 +12,6 @@ export dt=~/Desktop
 export pokemon=/usr/local/lib/python3.7/site-packages/pokemon_terminal-1.2.0-py3.7.egg/pokemonterminal/Images/Extra
 export automusic=/Users/lowking/Music/Music/Media.localized/Automatically\ Add\ to\ Music.localized
 export personal=~/Documents/personal
-export surgio=/Users/lowking/my-rule-store
 export bilimini=~/bilimini
 export surgio=~/my-rule-store
 export chavyscritp=~/Desktop/chavy-scripts
