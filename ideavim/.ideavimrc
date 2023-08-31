@@ -17,6 +17,12 @@ let g:NERDTreeMapActivateNode='l'
 let g:NERDTreeMapJumpParent='h'
 
 nmap gD :action GotoImplementation<cr>
+nmap gs :action ShowUsages<cr>
+
+" For insert numbers <99 in the lines selected
+vnoremap <F10> :!nl -ba -w 2 -s '. '<CR>
+" For insert numbers <999 in the lines selected
+vnoremap <F12> :!nl -ba -w 3 -s '. '<CR>
 
 "" -- Suggested options --
 " Show a few lines of context around the cursor. Note that this makes the
