@@ -112,10 +112,14 @@ setopt no_nomatch
 source /Users/lowking/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 source /Users/lowking/.bash_profile
 source /Users/lowking/.npmrc
-source /Users/lowking/.inputrc
-#source /sw/bin/init.sh
+# source /Users/lowking/.inputrc
+# source /sw/bin/init.sh
 plugins=(zsh-syntax-highlighting)
 ENABLE_CORRECTION="true"
+
+# zsh命令补全配置
+# autoload -Uz compinit && compinit
+# zstyle ':completion:*' matcher-list 'm:{a-z}={A-Z}'
 
 
 
@@ -139,3 +143,6 @@ export FZ_SUBDIR_CMD=fz
 
 # Then, source plugins and add commands to $PATH
 zplug load
+
+# 配置自定义命令补全
+source /Users/lowking/bin/t_complete
