@@ -13,7 +13,7 @@ gui:
   showBottomLine: false
 
 os:
-  openCommand: 'open -a /Applications/Sublime\ Text.app "{{filename}}"'
+  open: 'open -a /Applications/Sublime\ Text.app "{{filename}}"'
 
 customCommands:
   - key: 'F'
