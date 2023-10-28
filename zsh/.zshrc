@@ -136,6 +136,9 @@ source ~/.zplug/init.zsh
 
 # config z and fz
 # . /Users/lowking/z/z.sh
+export YSU_MESSAGE_POSITION="after"
+zplug "MichaelAquilina/zsh-you-should-use"
+
 zplug "changyuheng/fz", defer:1
 zplug "rupa/z", use:z.sh
 zplug "hlissner/zsh-autopair", defer:2
