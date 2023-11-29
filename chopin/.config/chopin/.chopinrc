@@ -25,7 +25,7 @@ bindkey -s "^Z" 'crm\n'
 bindkey -s "^Z^I" 'crmI\n'
 
 # chopin open books
-alias copen-book="chopin -o \"\$(fd -e pdf -e epub -e djvu -e mobi --exclude ~/go . '$HOME/obsidian/docs'|fzf --prompt='books>' --reverse --select-1 --exit-0|sed 's/ /\\ /g')\";exit"
+#alias copen-book="chopin -o \"\$(fd -e pdf -e epub -e djvu -e mobi --exclude ~/go . '$HOME/obsidian/docs'|fzf --prompt='books>' --reverse --select-1 --exit-0|sed 's/ /\\ /g')\";exit"
 bindkey -s '^P' 'copen-book\n'
 
 # chopin open wiki
@@ -33,4 +33,4 @@ alias copen-wiki="chopin -o \"\$(fd --type f --hidden --exclude .git . '$HOME/ob
 bindkey -s '^W' 'copen-wiki\n'
 
 # chopin open media
-alias copen-media="chopin -o \"\$(fd -e jpg -e jpeg -e png -e gif -e bmp -e tiff -e mp3 -e flac -e mkv -e avi -e mp4 . '$HOME'|fzf --prompt='medias>' --reverse --select-1 --exit-0|sed 's/ /\\ /g')\";exit"
+#alias copen-media="chopin -o \"\$(fd -e jpg -e jpeg -e png -e gif -e bmp -e tiff -e mp3 -e flac -e mkv -e avi -e mp4 . '$HOME'|fzf --prompt='medias>' --reverse --select-1 --exit-0|sed 's/ /\\ /g')\";exit"
