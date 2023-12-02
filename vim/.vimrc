@@ -1,6 +1,7 @@
 let $BASH_ENV="~/.vim_bash_env"
 set shellcmdflag=-O\ expand_aliases\ -c
 
+syntax on
 set ts=4
 set softtabstop=4
 set shiftwidth=4
