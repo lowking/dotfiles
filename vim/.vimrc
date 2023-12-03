@@ -10,4 +10,6 @@ set expandtab
 set autoindent
 set nu
 set relativenumber
+set ignorecase
+set infercase
 
