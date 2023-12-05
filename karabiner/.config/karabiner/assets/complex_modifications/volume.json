@@ -7,7 +7,7 @@
         {
           "type": "basic",
           "from": {
-            "key_code": "f11"
+            "key_code": "f14"
           },
           "to": [
             {
@@ -22,7 +22,7 @@
         {
           "type": "basic",
           "from": {
-            "key_code": "f11",
+            "key_code": "f14",
             "modifiers": {
               "mandatory": [
                 "fn"
@@ -31,7 +31,7 @@
           },
           "to": [
             {
-              "key_code": "f11",
+              "key_code": "f14",
               "modifiers": [
                 "fn"
               ]
@@ -41,7 +41,7 @@
         {
           "type": "basic",
           "from": {
-            "key_code": "f12"
+            "key_code": "f15"
           },
           "to": [
             {
@@ -56,7 +56,7 @@
         {
           "type": "basic",
           "from": {
-            "key_code": "f12",
+            "key_code": "f15",
             "modifiers": {
               "mandatory": [
                 "fn"
@@ -65,7 +65,7 @@
           },
           "to": [
             {
-              "key_code": "f12",
+              "key_code": "f15",
               "modifiers": [
                 "fn"
               ]
