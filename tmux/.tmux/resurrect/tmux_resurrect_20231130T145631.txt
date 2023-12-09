@@ -1,0 +1,40 @@
+pane	left	0	:left	1	:*	0	:/Users/lowking/Documents/personal	1	zsh	:
+pane	main	0	:personal	0	:	0	:/Users/lowking/Documents/personal	1	zsh	:
+pane	main	0	:personal	0	:	1	:/Users/lowking/Documents/personal	0	zsh	:
+pane	main	0	:personal	0	:	2	:/Users/lowking/Documents/personal/lkoss/jd	0	zsh	:
+pane	main	0	:personal	0	:	3	:/Users/lowking/Documents/personal/lkoss/jd	0	zsh	:
+pane	main	1	:gitserver	1	:*	0	:/Users/lowking/Documents/personal	1	zsh	:
+pane	main	1	:gitserver	1	:*	1	:/Users/lowking	0	zsh	:
+pane	main	1	:gitserver	1	:*	2	:/Users/lowking/my-rule-store	0	zsh	:
+pane	main	1	:gitserver	1	:*	3	:/Users/lowking/dotfiles	0	zsh	:
+pane	main	1	:gitserver	1	:*	4	:/Users/lowking/alist-web	0	zsh	:
+pane	main	1	:gitserver	1	:*	5	:/Users/lowking/alist	0	zsh	:
+pane	main	1	:gitserver	1	:*	6	:/Users/lowking/Downloads	0	zsh	:
+pane	main	2	:Scripts	0	:-	0	:/Users/lowking/Desktop/Scripts	1	zsh	:
+pane	main	2	:Scripts	0	:-	1	:/Users/lowking	0	zsh	:
+pane	main	3	:desktop	0	:	0	:/Users/lowking/Downloads	0	zsh	:
+pane	main	3	:desktop	0	:	1	:/Users/lowking/Downloads	1	zsh	:
+pane	main	3	:desktop	0	:	2	:/Users/lowking/dockerfiles	0	zsh	:
+pane	main	3	:desktop	0	:	3	:/Users/lowking/Documents/personal/tmux	0	zsh	:
+pane	main	4	:alist	0	:	0	:/Users/lowking/alist-web	1	zsh	:
+pane	main	4	:alist	0	:	1	:/Users/lowking/alist-web	0	zsh	:
+pane	main	5	:nginx	0	:	0	:/usr/local/etc/nginx	1	zsh	:
+pane	main	7	:ry	0	:	0	:/Users/lowking/Desktop/ruoYi	1	zsh	:
+pane	minikube	0	:dashboard	1	:*	0	:/Users/lowking	1	zsh	:
+pane	minikube	1	:ssh	0	:	0	:/Users/lowking	1	zsh	:
+pane	minikube	2	:screen	0	:-	0	:/Users/lowking	1	zsh	:
+pane	top	0	:top	1	:*	0	:/Users/lowking/Downloads	0	zsh	:
+pane	top	0	:top	1	:*	1	:/Users/lowking/dotfiles	1	zsh	:
+window	left	0	1	:*	cf7d,167x48,0,0,0
+window	main	0	0	:	be96,167x48,0,0{85x48,0,0[85x24,0,0,5,85x23,0,25,11],81x48,86,0[81x24,86,0,12,81x23,86,25,13]}
+window	main	1	1	:*	816a,167x48,0,0{85x48,0,0[85x10,0,0{29x10,0,0,6,27x10,30,0,14,27x10,58,0,15},85x37,0,11,16],81x48,86,0[81x17,86,0,17,81x15,86,18,18,81x14,86,34,19]}
+window	main	2	0	:-	de9e,167x48,0,0{85x48,0,0,7,81x48,86,0,21}
+window	main	3	0	:	5b1d,167x48,0,0{85x48,0,0[85x19,0,0,8,85x28,0,20,22],81x48,86,0[81x19,86,0,23,81x28,86,20,24]}
+window	main	4	0	:	3de6,167x48,0,0{83x48,0,0,9,83x48,84,0[83x24,84,0,25,83x23,84,25,26]}
+window	main	5	0	:	67ef,167x48,0,0,10
+window	main	7	0	:	e7f6,167x48,0,0,27
+window	minikube	0	1	:*	cf7e,167x48,0,0,1
+window	minikube	1	0	:	cf7f,167x48,0,0,2
+window	minikube	2	0	:-	cf80,167x48,0,0,3
+window	top	0	1	:*	a01a,167x48,0,0{51x48,0,0,4,115x48,52,0,28}
+state	main	minikube
