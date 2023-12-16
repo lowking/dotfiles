@@ -13,3 +13,5 @@ set relativenumber
 set ignorecase
 set infercase
 
+command Nd :w | !clear; node %
+command ND :w | !clear; node %
