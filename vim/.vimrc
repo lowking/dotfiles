@@ -15,5 +15,7 @@ set infercase
 
 command Nd :w | !clear; node %
 command ND :w | !clear; node %
+command Ndp :w | !clear; node % p
+command NDP :w | !clear; node % p
 command Py :w | !clear; python3 %
 command PY :w | !clear; python3 %
