@@ -11,6 +11,7 @@ set easymotion
 set surround
 set idearefactormode=keep
 set ideajoin
+set matchit
 
 set NERDTree
 let g:NERDTreeMapActivateNode='l'
