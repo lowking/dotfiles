@@ -1,5 +1,6 @@
 # 一些目录别名
 export cloud='/Users/lowking/Library/Mobile Documents/com~apple~CloudDocs'
+export cdoc='/Users/lowking/Library/Application Support'
 export subpkg='/Users/lowking/Library/Application Support/Sublime Text 3/Packages'
 export surge='/Users/lowking/Library/Mobile Documents/iCloud~com~nssurge~inc/Documents'
 export minio='/Users/lowking/minio'
