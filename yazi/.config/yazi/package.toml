@@ -13,5 +13,10 @@ use = "ahkohd/eza-preview"
 rev = "6575a9a"
 hash = "72355a6c8b7c8de6ed4dda0f98f86fee"
 
+[[plugin.deps]]
+use = "llanosrocas/githead"
+rev = "7104df2"
+hash = "407bdfbed7b052dad108eeac88270f25"
+
 [flavor]
 deps = []

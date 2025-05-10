@@ -3,6 +3,7 @@ require("smart-enter"):setup {
 }
 
 require("git"):setup()
+require("githead"):setup()
 
 require("eza-preview"):setup({
     -- Determines the directory depth level to tree preview (default: 3)
