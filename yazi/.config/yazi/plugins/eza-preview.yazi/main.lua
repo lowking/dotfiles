@@ -73,6 +73,7 @@ function M:peek(job)
 	local args = {
 		"--all",
 		"--color=always",
+        "--icons=always",
 		"--group-directories-first",
 		"--no-quotes",
 		tostring(job.file.url),

@@ -34,16 +34,16 @@ syntect_theme = "~/.config/yazi/Catppuccin-macchiato.tmTheme"
 
 
 # : Status {{{
-[icon]
-globs = []
-dirs  = []
-files = []
-exts  = []
-conds = []
+# [icon]
+# globs = []
+# dirs  = []
+# files = []
+# exts  = []
+# conds = []
 
 [status]
-sep_left = { open = "", close = "" }
-sep_right = { open = "", close = "" }
+# sep_left = { open = "", close = "" }
+# sep_right = { open = "", close = "" }
 separator_open  = ""
 separator_close = ""
 separator_style = { fg = "#403E3C", bg = "#403E3C" }
