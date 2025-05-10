@@ -238,3 +238,13 @@ run  = "git"
 [[plugin.prepend_previewers]]
 name = "*/"
 run = "eza-preview"
+
+# preview markdown glow
+[[plugin.prepend_previewers]]
+name = "*.md"
+run = "glow"
+
+# preview torrent
+[[plugin.prepend_previewers]]
+mime = "application/bittorrent"
+run = "torrent-preview"
