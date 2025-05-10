@@ -18,5 +18,10 @@ use = "llanosrocas/githead"
 rev = "7104df2"
 hash = "407bdfbed7b052dad108eeac88270f25"
 
+[[plugin.deps]]
+use = "yazi-rs/plugins:smart-paste"
+rev = "864a021"
+hash = "104fa2ce07d8890b07fcff68b0aaf923"
+
 [flavor]
 deps = []
