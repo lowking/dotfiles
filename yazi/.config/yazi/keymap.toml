@@ -136,11 +136,15 @@ keymap = [
 	{ on = [ ",", "r" ], run = "sort random --reverse=no",                      desc = "Sort randomly" },
 
 	# Goto
-	{ on = [ "g", "h" ],       run = "cd ~",             desc = "Go home" },
-	{ on = [ "g", "c" ],       run = "cd ~/.config",     desc = "Go ~/.config" },
-	{ on = [ "g", "d" ],       run = "cd ~/Downloads/temp",   desc = "Go ~/Downloads/temp" },
-	{ on = [ "g", "<Space>" ], run = "cd --interactive", desc = "Jump interactively" },
-	{ on = [ "g", "f" ],       run = "follow",           desc = "Follow hovered symlink" },
+	{ on = [ "g", "h" ],       run = "cd ~",                    desc = "Go home" },
+	{ on = [ "g", "b" ],       run = "cd ~/bin",                desc = "Go ~/bin" },
+	{ on = [ "g", "c" ],       run = "cd ~/.config",            desc = "Go ~/.config" },
+	{ on = [ "g", "d" ],       run = "cd ~/Downloads/temp",     desc = "Go ~/Downloads/temp" },
+	{ on = [ "g", "n" ],       run = "cd ~/nohups",             desc = "Go ~/nohups" },
+	{ on = [ "g", "p" ],       run = "cd ~/Documents/personal", desc = "Go ~/Documents/personal" },
+	{ on = [ "g", "s" ],       run = "cd ~/Desktop/Scripts",    desc = "Go ~/Desktop/Scripts" },
+	{ on = [ "g", "<Space>" ], run = "cd --interactive",        desc = "Jump interactively" },
+	{ on = [ "g", "f" ],       run = "follow",                  desc = "Follow hovered symlink" },
 
 	# Tabs
 	{ on = "t", run = "tab_create --current", desc = "Create a new tab with CWD" },
