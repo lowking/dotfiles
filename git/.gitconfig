@@ -15,3 +15,7 @@
 	clean = git-lfs clean -- %f
 [merge "ours"]
 	driver = true
+[url "git@github.com:"]
+    insteadOf = "gh:"
+[url "git@gogs.mynetgear.com:"]
+    insteadOf = "gs:"
