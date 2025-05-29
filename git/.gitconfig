@@ -1,20 +1,20 @@
 [user]
-	name = lowking
-	email = life@lowking.pro
+    name = lowking
+    email = life@lowking.pro
     signingkey = 3192255B712CC054
 [commit]
     gpgSign = true
 [core]
-	autocrlf = input # keep newlines as in input
+    autocrlf = input # keep newlines as in input
 [http]
     postBuffer = 5368709120
 [filter "lfs"]
-	smudge = git-lfs smudge -- %f
-	process = git-lfs filter-process
-	required = true
-	clean = git-lfs clean -- %f
+    smudge = git-lfs smudge -- %f
+    process = git-lfs filter-process
+    required = true
+    clean = git-lfs clean -- %f
 [merge "ours"]
-	driver = true
+    driver = true
 [url "git@github.com:"]
     insteadOf = "gh:"
 [url "git@gogs.mynetgear.com:"]
