@@ -1,10 +1,13 @@
 [user]
 	name = lowking
 	email = life@lowking.pro
+    signingkey = 3192255B712CC054
+[commit]
+    gpgSign = true
 [core]
-	autocrlf = input
+	autocrlf = input # keep newlines as in input
 [http]
-postBuffer = 5368709120
+    postBuffer = 5368709120
 [filter "lfs"]
 	smudge = git-lfs smudge -- %f
 	process = git-lfs filter-process
