@@ -6,8 +6,7 @@ email = "life@lowking.pro"
 
 [ui]
 editor = "vim"
-paginate = "never"
-default-command = "log"
+default-command = ["log", "-r", ".."]
 
 [signing]
 behavior = "own"
