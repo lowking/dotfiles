@@ -12,3 +12,6 @@ default-command = "log"
 [signing]
 behavior = "own"
 backend = "gpg"
+
+[snapshot]
+auto-track = "none()"
