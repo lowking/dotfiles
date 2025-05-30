@@ -1,0 +1,14 @@
+"$schema" = "https://jj-vcs.github.io/jj/latest/config-schema.json"
+
+[user]
+name = "lowking"
+email = "life@lowking.pro"
+
+[ui]
+editor = "vim"
+paginate = "never"
+default-command = "log"
+
+[signing]
+behavior = "own"
+backend = "gpg"
