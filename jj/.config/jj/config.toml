@@ -6,7 +6,12 @@ email = "life@lowking.pro"
 
 [ui]
 editor = "vim"
+#merge-editor = "idea"
 default-command = ["log", "-r", ".."]
+
+[merge-tools.idea]
+program = "/Applications/IntelliJ IDEA 2.app/Contents/MacOS/idea"
+merge-args = ["merge", "$left", "$right", "$base", "$output"]
 
 [signing]
 behavior = "own"
@@ -17,3 +22,4 @@ backend = "gpg"
 
 [git]
 private-commits = "description(glob:'wip:*') | description(glob:'private:*')"
+

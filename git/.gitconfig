@@ -8,6 +8,13 @@
     autocrlf = input # keep newlines as in input
 [http]
     postBuffer = 5368709120
+[merge]
+    tool = intellij
+[mergetool "intellij"]
+    cmd = '/Applications/IntelliJ IDEA 2.app/Contents/MacOS/idea' merge "$LOCAL" "$REMOTE" "$BASE" "$MERGED"
+    trustExitCode = true
+[mergetool]
+    keepBackup = false
 [filter "lfs"]
     smudge = git-lfs smudge -- %f
     process = git-lfs filter-process
