@@ -13,4 +13,4 @@ behavior = "own"
 backend = "gpg"
 
 [snapshot]
-auto-track = "none()"
+#auto-track = "none()"
