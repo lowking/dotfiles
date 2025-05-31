@@ -19,3 +19,5 @@
     insteadOf = "gh:"
 [url "git@gogs.mynetgear.com:"]
     insteadOf = "gs:"
+[init]
+	defaultBranch = main
