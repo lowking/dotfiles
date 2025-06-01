@@ -5,6 +5,7 @@ name = "lowking"
 email = "life@lowking.pro"
 
 [ui]
+#paginate = "never"
 editor = "vim"
 #diff-editor = "idea"
 #diff.tool = "idea"
