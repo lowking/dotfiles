@@ -1,0 +1,59 @@
+#compdef jj
+function _clap_fallback_path_completion() {
+    local prefix="${words[CURRENT]}"
+    local dir filter
+    if [[ "$prefix" == */* ]]; then
+        dir="${prefix%/*}/"
+        filter="${prefix##*/}"
+    else
+        dir=""
+        filter="$prefix"
+    fi
+    local completions=()
+    for file in "$dir"*; do
+        [[ -e $file ]] || continue
+        local base="${file##*/}"
+        [[ $base == $filter* ]] || continue
+        if [[ -d $file ]]; then
+            completions+=("${dir}${base}/")
+        else
+            completions+=("${dir}${base}")
+        fi
+    done
+    compadd -Q -S '' -- "${completions[@]}"
+}
+
+function _clap_dynamic_completer_jj() {
+    local _CLAP_COMPLETE_INDEX=$((CURRENT - 1))
+    local _CLAP_IFS=$'\n'
+    local logFile=/dev/null
+
+    local completions
+    completions=("${(@f)$( \
+        _CLAP_IFS="$_CLAP_IFS" \
+        _CLAP_COMPLETE_INDEX="$_CLAP_COMPLETE_INDEX" \
+        COMPLETE="zsh" \
+        /usr/local/Cellar/jj/0.29.0/bin/jj -- "${words[@]}" 2>/dev/null \
+    )}")
+
+    print -rl -- $completions > $logFile
+
+    if (( ${#completions[@]} )); then
+        local params=()
+        for item in "${completions[@]}"; do
+            if [[ "$item" == --* || "$item" == *:* ]]; then
+                params+=("${item%%:*}")
+            fi
+        done
+
+        if (( ${#params[@]} )); then
+            echo "参数补全" >> $logFile
+            compadd -Q -S ' ' -- "${params[@]}"
+            return
+        fi
+    fi
+
+    echo "兜底补全" >> $logFile
+    _clap_fallback_path_completion
+}
+compdef _clap_dynamic_completer_jj jj
