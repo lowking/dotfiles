@@ -38,7 +38,7 @@ function _clap_fallback_path_completion() {
 function _clap_dynamic_completer_jj() {
     local _CLAP_COMPLETE_INDEX=$((CURRENT - 1))
     local _CLAP_IFS=$'\n'
-    local logFile=/tmp/jj.log
+    local logFile=/dev/null
 
     local completions
     completions=("${(@f)$( \
