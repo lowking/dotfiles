@@ -1,4 +1,5 @@
 #compdef jj
+
 function _clap_fallback_path_completion() {
     local prefix="${words[CURRENT]}"
     local dir filter
@@ -9,24 +10,35 @@ function _clap_fallback_path_completion() {
         dir=""
         filter="$prefix"
     fi
-    local completions=()
-    for file in "$dir"*; do
+
+    # 兼容 tab 时 prefix 为空
+    if [[ -z "$prefix" && "${words[CURRENT-1]}" == */ ]]; then
+        dir="${words[CURRENT-1]}"
+        filter=""
+    fi
+
+    local base_list=()
+    for file in "${dir}"* "${dir}".*; do
         [[ -e $file ]] || continue
         local base="${file##*/}"
-        [[ $base == $filter* ]] || continue
+        [[ "$base" == "." || "$base" == ".." ]] && continue
+        [[ "$base" == .* && "$filter" != .* ]] && continue
+        if [[ -n "$filter" ]]; then
+            [[ $base == $filter* ]] || continue
+        fi
         if [[ -d $file ]]; then
-            completions+=("${dir}${base}/")
+            base_list+=("${base}/")
         else
-            completions+=("${dir}${base}")
+            base_list+=("${base}")
         fi
     done
-    compadd -Q -S '' -- "${completions[@]}"
+    compadd -Q -S '' -P "$dir" -- "${base_list[@]}"
 }
 
 function _clap_dynamic_completer_jj() {
     local _CLAP_COMPLETE_INDEX=$((CURRENT - 1))
     local _CLAP_IFS=$'\n'
-    local logFile=/dev/null
+    local logFile=/tmp/jj.log
 
     local completions
     completions=("${(@f)$( \
