@@ -1,0 +1,140 @@
+# screen
+alias s='screen'
+# scp
+alias scp2ddbotconfig='doScp(){ scp ${1} lowking@gg:/home/lowking/git-webhook/bot/ddBot/config };doScp'
+
+# macOS
+# sudo softwareupdate --ignore 'macOS Big Sur'
+# sudo softwareupdate --reset-ignored
+alias macOSChangeScheduleDay='sudo defaults write /Library/Preferences/com.apple.SoftwareUpdate ScheduleFrequency 99999999'
+
+# nginx
+alias ngreload='/usr/local/bin/nginx -s reload'
+alias vngconf='vim /usr/local/etc/nginx/nginx.conf'
+
+alias sm163='sh /Users/lowking/Documents/personal/m163.sh'
+
+# tmux相关
+alias tks='tmux kill-session ${1}'
+
+# 连接前需ssh -p 22 mbApp@192.168.1.134，保存服务器证书
+alias cdk='sshpass -p $hostpwd ssh docker -l root'
+alias cpve='sshpass -p $hostpwd ssh pve -l root'
+alias cplex='sshpass -p $hostpwd ssh plex -l root'
+alias clksony='sshpass -p $hostpwd ssh lksony -l lowking'
+alias csur='sshpass -p $hostpwd ssh surgio -l root'
+alias cgit='sshpass -p $hostpwd ssh gitserver -l root'
+alias cbot='sshpass -p $hostpwd ssh bot -l root'
+alias cop='sshpass -p $hostpwd ssh openwrt -l root'
+
+# 终端打开
+alias music='open -a /Applications/NeteaseMusic.app ${1}'
+alias sub='open -a /Applications/Sublime\ Text.app ${1}'
+alias ide='open -a /Applications/IntelliJ\ IDEA\ 2.app/Contents/MacOS/idea ${1}'
+alias wps='open -a /Applications/wpsoffice.app ${1}'
+alias ops='open -a /Applications/Adobe\ Photoshop\ CC\ 2019/Adobe\ Photoshop\ CC\ 2019.app/ ${1}'
+#alias neo='open -n /Applications/Neovide.app'
+alias neo='proxyon && open -n /Applications/Neovide.app --args --maximized --multigrid --log && proxyoff'
+
+# baidupcs-go相关
+alias bdb='/Users/lowking/BaiduPCS-Go-v3.6-darwin-osx-amd64/BaiduPCS-Go login -bduss=TFzeXJ3RkQ5ekUtYWVQZ2VBNS13aDVkV2NmQnpMODN5d2RhLXdrOXF4MEhyOFJiQVFBQUFBJCQAAAAAAAAAAAEAAABuWQoMaHRjeXJ5bGNtajA0MTUAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAcinVsHIp1bR'
+alias bd='/Users/lowking/BaiduPCS-Go-v3.6-darwin-osx-amd64/BaiduPCS-Go'
+
+# jupyter相关
+alias start-jupyter='jupyter notebook'
+
+# brew相关
+alias bcache='cd `brew --cache`'
+
+# synergy相关
+alias synergys='/Users/lowking/synergy/synergys --config synergy.conf'
+
+# jenkins相关
+alias jenkins-l='sudo launchctl load /Library/LaunchDaemons/org.jenkins-ci.plist'
+alias jenkins-u='sudo launchctl unload /Library/LaunchDaemons/org.jenkins-ci.plist'
+
+# git相关指令
+alias lg='lazygit'
+alias gita='git add ${1}'
+alias gitp='git push'
+alias gits='git status'
+alias gitaddorigin='git remote set-url --add origin ${1}'
+alias gitnew='git remote add origin ${1}'
+alias gitremoteadd='git remote add ${1} ${2}'
+alias gitnewpush='git push -u origin master'
+# alias gitc='git commit -m ${1}'
+alias gitproxyunset='git config --global --unset http.proxy'
+alias gitproxy='git config --global http.proxy http://127.0.0.1:1086'
+alias gitpushforce='git push --force'
+alias gitrmcache='git rm --cache ${1}'
+alias gitpullforce='git fetch --all && git reset --hard origin/master && git pull'
+alias gitb='git checkout -b ${1}'
+alias gitck='git checkout ${1}'
+
+# jj相关
+alias j='jj'
+alias jab='jj abandon'
+alias jgp='jj git push'
+alias jst='jj st'
+alias jl='jj log'
+alias jb='jj b'
+alias js='jj b s'
+alias je='jj edit'
+alias jd='jj desc'
+alias jdf='jj diff'
+alias jsp='jj split'
+alias jsq='jj squash'
+alias jrb='jj rebase'
+alias jrs='jj restore'
+alias jrv='jj git remote list'
+
+alias jenkins-jobs='cd /Users/Shared/Jenkins/Home/jobs'
+alias jmembermgt='cd /Users/Shared/Jenkins/Home/jobs/member-mgt/lastSuccessful/com.mbkj$member-mgt/archive/com.mbkj/member-mgt'
+
+# npm相关
+alias npmcsr='npm config set registry ${1}'
+alias npmcgr='npm config get registry'
+
+# 系统相关
+alias mac-update-ignore='sudo softwareupdate --ignore ${1}'
+alias mac-update-reset='sudo softwareupdate --reset-ignored'
+alias kill='kill -9 ${1}'
+# 集显
+alias gpu0='sudo pmset -a GPUSwitch 0'
+# 独显
+alias gpu1='sudo pmset -a GPUSwitch 1'
+# 自动
+alias gpu2='sudo pmset -a GPUSwitch 2'
+alias rmfr='sudo rm -fr ${1}'
+alias sb='source ~/.bash_profile'
+alias vb='vim ~/.bash_profile'
+alias vba='vim ~/.bash_alias'
+alias vbk='vim ~/.bash_shortcut'
+alias vp='vim ~/.path_profile'
+alias vbc='vim $personal/backup.sh'
+alias vrs='vim $personal/restore.sh'
+alias vhc='vim ~/.ssh/config'
+alias vhosts='sudo vim /etc/hosts'
+#alias ls="gls -G --color=auto"
+alias ls="eza"
+alias ll='ls -al'
+alias lh='ls -lh'
+alias resetHostname='sudo scutil --set HostName MBP'
+alias cip='curl -s ip.me || curl -s myip.ipip.net'
+alias uw='sudo mount -uw /'
+alias proxys='cat ~/proxys'
+alias tt="tree -aL 2 ${1}"
+alias tt3="tree -aL 3 ${1}"
+alias xargs="xargs "
+alias bash="bash "
+
+# 个人备份相关
+alias bc='sh ~/Documents/personal/backup.sh'
+alias rs='sh ~/Documents/personal/restore.sh'
+
+# 键盘固件覆盖
+alias vcf='cp -f /Users/lowking/Downloads/layout.cys /Volumes/CYSET\ DISK/layout.cys'
+
+# 远程执行命令
+alias srl='ssh gitserver srl'
+alias stm='ssh gitserver stm $@'

@@ -1,0 +1,33 @@
+# 通用小部件函数，支持多个参数
+function generic_widget {
+  local cmd=("$@")  # 获取所有参数作为命令和其参数
+
+  # 启动命令并确保正确运行，清除终端回显并重绘提示符
+  if eval "${cmd[@]}" < /dev/tty > /dev/tty 2>&1; then
+    zle -I                     # 清除回显
+    zle reset-prompt           # 重绘终端提示符
+  else
+    zle -M "Error: Command failed"  # 显示错误信息
+  fi
+}
+
+# 定义一个辅助函数，用于动态创建并绑定具体命令的小部件
+function create_widget {
+  local widget_name="$1"  # 小部件名称
+  shift                   # 移除第一个参数（小部件名称）
+  local command=("$@")    # 剩下的所有参数作为命令和其参数
+
+  # 动态定义一个小部件，调用通用的 generic_widget
+  eval "
+  function $widget_name {
+    generic_widget \"${command[@]}\"
+  }
+  "
+  zle -N "$widget_name"  # 注册小部件
+}
+
+# 创建一个用于运行 yazi 的小部件
+create_widget "yazi_widget" "yazi"
+
+# 绑定快捷键（可根据需求自定义快捷键）
+bindkey "^F^Y" yazi_widget
