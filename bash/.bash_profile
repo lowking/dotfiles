@@ -11,10 +11,6 @@ export PATH=$PATH:"/usr/local/bin"
 # lazygit
 export XDG_CONFIG_HOME="$HOME/.config"
 
-# 加载目录映射
-source ~/.path_profile
-source ~/.secret
-
 # rust相关
 export PATH=$PATH:$HOME/.cargo/bin
 
@@ -26,9 +22,6 @@ export PATH=$PATH:/usr/local/mysql/support-files
 export GOROOT=/usr/local/bin
 export GOPATH=/Users/lowking/Desktop
 export GOBIN=$GOPATH/bin
-
-# 加载别名
-source ~/.bash_alias
 
 export LS_OPTIONS='--color=auto'
 #export CLICOLOR='Yes'
@@ -81,7 +74,6 @@ function ftpproxyon() {
     echo $ftpproxystate
 }
 
-gifInfoCache="/tmp/gifInfo"
 function scaledWH() {
     w=$1
     h=$2
@@ -149,6 +141,3 @@ unset TMUX
 
 #export PS1='%{%f%b%k%}$(build_prompt)'
 
-source "$HOME/.config/chopin/.chopinrc"
-source "$HOME/.bash_shortcut"
-. "$HOME/.cargo/env"

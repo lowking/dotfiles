@@ -1,7 +1,5 @@
 # screen
 alias s='screen'
-# scp
-alias scp2ddbotconfig='doScp(){ scp ${1} lowking@gg:/home/lowking/git-webhook/bot/ddBot/config };doScp'
 
 # macOS
 # sudo softwareupdate --ignore 'macOS Big Sur'
@@ -11,11 +9,6 @@ alias macOSChangeScheduleDay='sudo defaults write /Library/Preferences/com.apple
 # nginx
 alias ngreload='/usr/local/bin/nginx -s reload'
 alias vngconf='vim /usr/local/etc/nginx/nginx.conf'
-
-alias sm163='sh /Users/lowking/Documents/personal/m163.sh'
-
-# tmux相关
-alias tks='tmux kill-session ${1}'
 
 # 连接前需ssh -p 22 mbApp@192.168.1.134，保存服务器证书
 alias cdk='sshpass -p $hostpwd ssh docker -l root'
@@ -36,13 +29,6 @@ alias ops='open -a /Applications/Adobe\ Photoshop\ CC\ 2019/Adobe\ Photoshop\ CC
 #alias neo='open -n /Applications/Neovide.app'
 alias neo='proxyon && open -n /Applications/Neovide.app --args --maximized --multigrid --log && proxyoff'
 
-# baidupcs-go相关
-alias bdb='/Users/lowking/BaiduPCS-Go-v3.6-darwin-osx-amd64/BaiduPCS-Go login -bduss=TFzeXJ3RkQ5ekUtYWVQZ2VBNS13aDVkV2NmQnpMODN5d2RhLXdrOXF4MEhyOFJiQVFBQUFBJCQAAAAAAAAAAAEAAABuWQoMaHRjeXJ5bGNtajA0MTUAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAcinVsHIp1bR'
-alias bd='/Users/lowking/BaiduPCS-Go-v3.6-darwin-osx-amd64/BaiduPCS-Go'
-
-# jupyter相关
-alias start-jupyter='jupyter notebook'
-
 # brew相关
 alias bcache='cd `brew --cache`'
 
@@ -52,6 +38,7 @@ alias synergys='/Users/lowking/synergy/synergys --config synergy.conf'
 # jenkins相关
 alias jenkins-l='sudo launchctl load /Library/LaunchDaemons/org.jenkins-ci.plist'
 alias jenkins-u='sudo launchctl unload /Library/LaunchDaemons/org.jenkins-ci.plist'
+alias jenkins-jobs='cd /Users/Shared/Jenkins/Home/jobs'
 
 # git相关指令
 alias lg='lazygit'
@@ -62,7 +49,6 @@ alias gitaddorigin='git remote set-url --add origin ${1}'
 alias gitnew='git remote add origin ${1}'
 alias gitremoteadd='git remote add ${1} ${2}'
 alias gitnewpush='git push -u origin master'
-# alias gitc='git commit -m ${1}'
 alias gitproxyunset='git config --global --unset http.proxy'
 alias gitproxy='git config --global http.proxy http://127.0.0.1:1086'
 alias gitpushforce='git push --force'
@@ -87,9 +73,6 @@ alias jsq='jj squash'
 alias jrb='jj rebase'
 alias jrs='jj restore'
 alias jrv='jj git remote list'
-
-alias jenkins-jobs='cd /Users/Shared/Jenkins/Home/jobs'
-alias jmembermgt='cd /Users/Shared/Jenkins/Home/jobs/member-mgt/lastSuccessful/com.mbkj$member-mgt/archive/com.mbkj/member-mgt'
 
 # npm相关
 alias npmcsr='npm config set registry ${1}'
@@ -122,7 +105,6 @@ alias lh='ls -lh'
 alias resetHostname='sudo scutil --set HostName MBP'
 alias cip='curl -s ip.me || curl -s myip.ipip.net'
 alias uw='sudo mount -uw /'
-alias proxys='cat ~/proxys'
 alias tt="tree -aL 2 ${1}"
 alias tt3="tree -aL 3 ${1}"
 alias xargs="xargs "
@@ -132,7 +114,7 @@ alias bash="bash "
 alias bc='sh ~/Documents/personal/backup.sh'
 alias rs='sh ~/Documents/personal/restore.sh'
 
-# 键盘固件覆盖
+# 键盘固件覆盖 vortex core
 alias vcf='cp -f /Users/lowking/Downloads/layout.cys /Volumes/CYSET\ DISK/layout.cys'
 
 # 远程执行命令

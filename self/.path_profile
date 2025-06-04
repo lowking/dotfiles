@@ -5,7 +5,6 @@ export subpkg='/Users/lowking/Library/Application Support/Sublime Text 3/Package
 export surge='/Users/lowking/Library/Mobile Documents/iCloud~com~nssurge~inc/Documents'
 export minio='/Users/lowking/minio'
 export sa='/Users/lowking/Library/Mobile Documents/iCloud~dk~simonbs~Scriptable/Documents'
-export gitprefix='git@gogs.mynetgear.com:lowking'
 export lkscripts=$dt/Scripts
 export dl=~/Downloads
 export doc=~/Documents
