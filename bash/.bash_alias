@@ -89,7 +89,7 @@ alias gpu1='sudo pmset -a GPUSwitch 1'
 # 自动
 alias gpu2='sudo pmset -a GPUSwitch 2'
 alias rmfr='sudo rm -fr ${1}'
-alias sb='source ~/.bash_profile'
+alias sb='source ~/.zshenv'
 alias vb='vim ~/.bash_profile'
 alias vba='vim ~/.bash_alias'
 alias vbk='vim ~/.bash_shortcut'
