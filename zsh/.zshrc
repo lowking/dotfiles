@@ -151,3 +151,4 @@ zplug load
 # 配置自定义命令补全
 source /Users/lowking/bin/t_complete
 
+source ~/.bash_profile

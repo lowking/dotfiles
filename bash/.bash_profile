@@ -95,7 +95,7 @@ function ysgif() {
     height="$2"
     # 获取原文件的高度
     sourceHeight=`nohup ffprobe "$filePath.gif" |grep "Stream" |awk -F ", " '{print $3}' |awk -F "x" '{print $2}'`
-    fileSize=`ls -l "$filePath.gif" |awk '{print $4}'`
+    fileSize=`gls -l "$filePath.gif" |awk '{print $5}'`
     if [[ $fileSize -gt 5242880 ]] then;
         # 大小大于5M，进行压缩
         # 未传入高度，则使用文件原本的高度
@@ -140,4 +140,10 @@ unset TMUX
 #pokemon zzz
 
 #export PS1='%{%f%b%k%}$(build_prompt)'
+
+source /Users/lowking/.npmrc
+# source /Users/lowking/.inputrc
+source ~/.bash_alias
+source ~/.path_profile
+source ~/.bash_shortcut
 
