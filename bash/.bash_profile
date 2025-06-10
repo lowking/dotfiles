@@ -143,6 +143,7 @@ unset TMUX
 
 source /Users/lowking/.npmrc
 # source /Users/lowking/.inputrc
+source ~/.secret
 source ~/.bash_alias
 source ~/.path_profile
 source ~/.bash_shortcut
