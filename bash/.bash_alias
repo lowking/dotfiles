@@ -123,4 +123,4 @@ alias vcf='cp -f /Users/lowking/Downloads/layout.cys /Volumes/CYSET\ DISK/layout
 
 # 远程执行命令
 alias srl='ssh gitserver srl'
-alias stm='ssh gitserver stm $@'
+alias stm='ssh gitserver "export DOMAIN=$RESUME_DOMAIN; export URI=$RESUME_URI; stm $@"'
