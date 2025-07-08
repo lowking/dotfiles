@@ -1,0 +1,21 @@
+{
+  "title": "Map F13 to Fn",
+  "rules": [
+    {
+      "description": "Map F13 to Fn",
+      "manipulators": [
+        {
+          "type": "basic",
+          "from": {
+            "key_code": "f13"
+          },
+          "to": [
+            {
+              "key_code": "fn"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
