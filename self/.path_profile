@@ -7,6 +7,7 @@ export minio='/Users/lowking/minio'
 export sa='/Users/lowking/Library/Mobile Documents/iCloud~dk~simonbs~Scriptable/Documents'
 export lkscripts=$dt/Scripts
 export dl=~/Downloads
+export temp=~/Downloads/temp
 export doc=~/Documents
 export dt=~/Desktop
 export pokemon=/usr/local/lib/python3.7/site-packages/pokemon_terminal-1.2.0-py3.7.egg/pokemonterminal/Images/Extra
