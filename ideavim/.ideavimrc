@@ -12,6 +12,7 @@ set surround
 set idearefactormode=keep
 set ideajoin
 set matchit
+set ignorecase
 
 set NERDTree
 let g:NERDTreeMapActivateNode='l'
