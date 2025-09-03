@@ -17,6 +17,20 @@ prepend_keymap = [
 ]
 
 keymap = [
+	# Goto
+	{ on = [ "g", "h" ],       run = "cd ~",                    desc = "Go home" },
+	{ on = [ "g", "k" ],       run = "cd \"/Users/lowking/Library/Application Support/unity.Team Cherry.Hollow Knight\"",                    desc = "Go save files of Hollow Knight" },
+	{ on = [ "g", "m" ],       run = "cd \"/Users/lowking/Library/Application Support/Steam/steamapps/common/Hollow Knight/hollow_knight.app/Contents/Resources/Data/Managed/mods\"",                    desc = "Go Hollow Knight Mods" },
+	{ on = [ "g", "b" ],       run = "cd ~/bin",                desc = "Go ~/bin" },
+	{ on = [ "g", "c" ],       run = "cd ~/.config",            desc = "Go ~/.config" },
+	{ on = [ "g", "d" ],       run = "cd ~/Downloads/temp",     desc = "Go ~/Downloads/temp" },
+	{ on = [ "g", "n" ],       run = "cd ~/nohups",             desc = "Go ~/nohups" },
+	{ on = [ "g", "p" ],       run = "cd ~/Documents/personal", desc = "Go ~/Documents/personal" },
+	{ on = [ "g", "S" ],       run = "cd ~/Desktop/Scripts",    desc = "Go ~/Desktop/Scripts" },
+	{ on = [ "g", "s" ],       run = "cd \"/Users/lowking/Library/Application Support/Steam/steamapps/common/Hollow Knight/hollow_knight.app/Contents/Resources/Data/Managed/mods/Custom Knight/Skins\"",    desc = "Go Skins of Hollow Knight" },
+	{ on = [ "g", "<Space>" ], run = "cd --interactive",        desc = "Jump interactively" },
+	{ on = [ "g", "f" ],       run = "follow",                  desc = "Follow hovered symlink" },
+
 	{ on = "<Esc>", run = "escape",             desc = "Exit visual mode, clear selection, or cancel search" },
 	{ on = "<C-[>", run = "escape",             desc = "Exit visual mode, clear selection, or cancel search" },
 	{ on = "q",     run = "quit",               desc = "Quit the process" },
@@ -134,17 +148,6 @@ keymap = [
 	{ on = [ ",", "s" ], run = [ "sort size --reverse=no", "linemode size" ],   desc = "Sort by size" },
 	{ on = [ ",", "S" ], run = [ "sort size --reverse", "linemode size" ],      desc = "Sort by size (reverse)" },
 	{ on = [ ",", "r" ], run = "sort random --reverse=no",                      desc = "Sort randomly" },
-
-	# Goto
-	{ on = [ "g", "h" ],       run = "cd ~",                    desc = "Go home" },
-	{ on = [ "g", "b" ],       run = "cd ~/bin",                desc = "Go ~/bin" },
-	{ on = [ "g", "c" ],       run = "cd ~/.config",            desc = "Go ~/.config" },
-	{ on = [ "g", "d" ],       run = "cd ~/Downloads/temp",     desc = "Go ~/Downloads/temp" },
-	{ on = [ "g", "n" ],       run = "cd ~/nohups",             desc = "Go ~/nohups" },
-	{ on = [ "g", "p" ],       run = "cd ~/Documents/personal", desc = "Go ~/Documents/personal" },
-	{ on = [ "g", "s" ],       run = "cd ~/Desktop/Scripts",    desc = "Go ~/Desktop/Scripts" },
-	{ on = [ "g", "<Space>" ], run = "cd --interactive",        desc = "Jump interactively" },
-	{ on = [ "g", "f" ],       run = "follow",                  desc = "Follow hovered symlink" },
 
 	# Tabs
 	{ on = "t", run = "tab_create --current", desc = "Create a new tab with CWD" },
