@@ -2,6 +2,8 @@ lazygit/.config/lazygit/state.yml
 .wakatime-project
 vim/.vim/.netrwhist
 .idea
-.log
+*.log
 LOG
 LOG.old
+*.userdb
+sync
