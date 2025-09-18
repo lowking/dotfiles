@@ -5,7 +5,7 @@
 # 方案说明
 schema:
   schema_id: rime_ice
-  name: 雾凇拼音
+  name: 拼音雾凇
   version: "2025-03-30"
   author:
     - Dvel
