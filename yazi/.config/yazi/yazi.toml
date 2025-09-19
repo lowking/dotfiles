@@ -29,6 +29,9 @@ ueberzug_scale  = 1
 ueberzug_offset = [ 0, 0, 0, 0 ]
 
 [opener]
+editHkDat = [
+    { run = '/Users/lowking/hksf-decoder/edit_dat.sh "$1"', desc = "decode dat file and edit", block = true, for = "macos" },
+]
 edit = [
 	{ run = '${EDITOR:-vi} "$@"', desc = "$EDITOR", block = true, for = "unix" },
 	{ run = 'code %*',    orphan = true, desc = "code",           for = "windows" },
@@ -58,6 +61,9 @@ play = [
 ]
 
 [open]
+prepend_rules = [
+	{ name = "*.dat", use = "editHkDat" },
+]
 rules = [
 	# Folder
 	{ name = "*/", use = [ "edit", "open", "reveal" ] },
