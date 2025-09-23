@@ -19,3 +19,9 @@ command Ndp :w | !clear; node % p
 command NDP :w | !clear; node % p
 command Py :w | !clear; python3 %
 command PY :w | !clear; python3 %
+
+" 每次打开光标恢复到上次退出位置
+autocmd BufReadPost *
+\ if line("'\"") > 0 && line("'\"") <= line("$") |
+\   exe "normal g`\"" |
+\ endif
