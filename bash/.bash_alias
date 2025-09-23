@@ -60,7 +60,6 @@ alias gitck='git checkout ${1}'
 # jj相关
 alias j='jj'
 alias jab='jj abandon'
-alias jst='jj st'
 alias jl='jj log'
 alias jb='jj b'
 alias js='jj b s'
@@ -72,6 +71,10 @@ alias jsq='jj squash'
 alias jrb='jj rebase'
 alias jrs='jj restore'
 alias jrv='jj git remote list'
+fucntion jst() {
+    gst
+    jj st
+}
 fucntion jgp() {
   if jj git push "$@"; then
     gst
