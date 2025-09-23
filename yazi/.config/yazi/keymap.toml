@@ -15,7 +15,6 @@ prepend_keymap = [
     { on = ["<C-y>"], run = "seek -5" },
     { on = ["<C-t>"], run = "plugin system-clipboard" },
     { on = ["<C-x>"], run = "shell 'cp -fr \"$@\" ~/Downloads/temp'" },
-    { on = ["<C-A-x>"], run = "shell 'find \"/Users/lowking/Library/Application Support/unity.Team-Cherry.Silksong/82682904\" -name \"user2*.dat*\" |xargs -I {} rm -fr {} && find \"/Users/lowking/Library/Application Support/unity.Team-Cherry.Silksong/82682904\" -name \"user2*.dat\" |xargs -I {} rm -fr {} && cp -fr ~/Downloads/temp/user1.dat \"/Users/lowking/Library/Application Support/unity.Team-Cherry.Silksong/82682904/user2.dat\" && cp -fr ~/Downloads/temp/user1.dat \"/Users/lowking/Library/Application Support/unity.Team-Cherry.Silksong/82682904/user2_1.0.28626.dat\" && rm -fr ~/Downloads/temp/user1.dat'" },
 ]
 
 keymap = [
