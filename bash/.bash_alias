@@ -91,13 +91,13 @@ function js() {
   cleaned_subject=$(echo "$current_commit_subject" | awk '{gsub(/^[ \t|│]+/, ""); gsub(/[ \t]+$/, ""); print}')
 
   # 判断是否为 (no description set)
-  if [[ "$cleaned_subject" == "(no description set)" ]]; then
+  if [[ "$cleaned_subject" == "(no description set)" || "$cleaned_subject" == "(empty) (no description set)" ]]; then
     # 查找最近的一个不是 (no description set) 的 changeId
     change_id=$(echo "$j_output" | awk '
       BEGIN {found_head=0}
       found_head==0 && /^@/ {found_head=1; next}
-      found_head==1 && ($0 ~ /^[ \t|│]*\(no description set\)[ \t]*$/) {next}
-      found_head==1 && ($0 !~ /^[ \t|│]*\(no description set\)[ \t]*$/) {
+      found_head==1 && ($0 ~ /^[ \t|│]*(\(empty\) )?\(no description set\)[ \t]*$/) {next}
+      found_head==1 && ($0 !~ /^[ \t|│]*(\(empty\) )?\(no description set\)[ \t]*$/) {
         if ($0 ~ /^○[[:space:]]+[a-z0-9]{8}/) {
           sub(/^○[[:space:]]+/, "", $0)
           print substr($0, 1, 8)
