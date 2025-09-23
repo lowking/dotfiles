@@ -62,7 +62,6 @@ alias j='jj'
 alias jab='jj abandon'
 alias jl='jj log'
 alias jb='jj b'
-alias js='jj b s'
 alias je='jj edit'
 alias jd='jj desc'
 alias jdf='jj diff'
@@ -71,6 +70,51 @@ alias jsq='jj squash'
 alias jrb='jj rebase'
 alias jrs='jj restore'
 alias jrv='jj git remote list'
+function js() {
+  # 检查参数
+  if [ $# -lt 1 ]; then
+    echo "用法: js <branch> [其它参数]"
+    return 1
+  fi
+
+  branch="$1"
+  shift
+  extra_args=("$@")
+
+  # 获取 j --no-pager 的输出
+  j_output=$(j --no-pager)
+
+  # 获取当前 commit 信息的第二行（提交信息）
+  current_commit_subject=$(echo "$j_output" | awk 'NR==2 {print $0}')
+
+  # 去除前导"│"、"|"、空白符，去除尾部空白
+  cleaned_subject=$(echo "$current_commit_subject" | awk '{gsub(/^[ \t|│]+/, ""); gsub(/[ \t]+$/, ""); print}')
+
+  # 判断是否为 (no description set)
+  if [[ "$cleaned_subject" == "(no description set)" ]]; then
+    # 查找最近的一个不是 (no description set) 的 changeId
+    change_id=$(echo "$j_output" | awk '
+      BEGIN {found_head=0}
+      found_head==0 && /^@/ {found_head=1; next}
+      found_head==1 && ($0 ~ /^[ \t|│]*\(no description set\)[ \t]*$/) {next}
+      found_head==1 && ($0 !~ /^[ \t|│]*\(no description set\)[ \t]*$/) {
+        if ($0 ~ /^○[[:space:]]+[a-z0-9]{8}/) {
+          sub(/^○[[:space:]]+/, "", $0)
+          print substr($0, 1, 8)
+          exit
+        }
+      }
+    ')
+    if [ -z "$change_id" ]; then
+      echo "未找到有效的 changeId"
+      return 2
+    fi
+    command jj b s -r "$change_id" "$branch" "${extra_args[@]}"
+  else
+    command jj b s "$branch" "${extra_args[@]}"
+  fi
+}
+compdef _jj js
 fucntion jst() {
     gst
     jj st
