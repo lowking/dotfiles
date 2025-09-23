@@ -22,6 +22,7 @@ keymap = [
 	{ on = [ "g", "h" ],       run = "cd ~",                    desc = "Go home" },
 	{ on = [ "g", "k" ],       run = "cd \"/Users/lowking/Library/Application Support/unity.Team Cherry.Hollow Knight\"",                    desc = "Go save files of Hollow Knight" },
 	{ on = [ "g", "m" ],       run = "cd \"/Users/lowking/Library/Application Support/Steam/steamapps/common/Hollow Knight/hollow_knight.app/Contents/Resources/Data/Managed/mods\"",                    desc = "Go Hollow Knight Mods" },
+	{ on = [ "g", "a" ],       run = "cd /Applications",        desc = "Go Applications" },
 	{ on = [ "g", "b" ],       run = "cd ~/bin",                desc = "Go ~/bin" },
 	{ on = [ "g", "c" ],       run = "cd ~/.config",            desc = "Go ~/.config" },
 	{ on = [ "g", "d" ],       run = "cd ~/Downloads/temp",     desc = "Go ~/Downloads/temp" },
@@ -29,6 +30,7 @@ keymap = [
 	{ on = [ "g", "p" ],       run = "cd ~/Documents/personal", desc = "Go ~/Documents/personal" },
 	{ on = [ "g", "S" ],       run = "cd ~/Desktop/Scripts",    desc = "Go ~/Desktop/Scripts" },
 	{ on = [ "g", "s" ],       run = "cd \"/Users/lowking/Library/Application Support/Steam/steamapps/common/Hollow Knight/hollow_knight.app/Contents/Resources/Data/Managed/mods/Custom Knight/Skins\"",    desc = "Go Skins of Hollow Knight" },
+	{ on = [ "g", "t" ],       run = "cd /Users/lowking/.Trash",desc = "Go Trash" },
 	{ on = [ "g", "<Space>" ], run = "cd --interactive",        desc = "Jump interactively" },
 	{ on = [ "g", "f" ],       run = "follow",                  desc = "Follow hovered symlink" },
 
