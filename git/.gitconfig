@@ -28,3 +28,6 @@
     insteadOf = "gs:"
 [init]
 	defaultBranch = main
+[filter "gitignore"]
+	clean = "sed '/ \\/\\/#gitignore$/d'"
+	smudge = cat
