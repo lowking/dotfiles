@@ -27,6 +27,7 @@ keymap = [
 	{ on = [ "g", "c" ],       run = "cd ~/.config",            desc = "Go ~/.config" },
 	{ on = [ "g", "d" ],       run = "cd ~/Downloads/temp",     desc = "Go ~/Downloads/temp" },
 	{ on = [ "g", "n" ],       run = "cd ~/nohups",             desc = "Go ~/nohups" },
+	{ on = [ "g", "o" ],       run = "cd /Users/lowking/dotfiles", desc = "Go dotfiles" },
 	{ on = [ "g", "p" ],       run = "cd ~/Documents/personal", desc = "Go ~/Documents/personal" },
 	{ on = [ "g", "S" ],       run = "cd ~/Desktop/Scripts",    desc = "Go ~/Desktop/Scripts" },
 	{ on = [ "g", "s" ],       run = "cd \"/Users/lowking/Library/Application Support/Steam/steamapps/common/Hollow Knight/hollow_knight.app/Contents/Resources/Data/Managed/mods/Custom Knight/Skins\"",    desc = "Go Skins of Hollow Knight" },
