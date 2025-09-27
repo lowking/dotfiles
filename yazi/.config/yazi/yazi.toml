@@ -33,7 +33,7 @@ editHkDat = [
     { run = '/Users/lowking/hksf-decoder/edit_dat.sh "$1"', desc = "decode dat file and edit", block = true, for = "macos" },
 ]
 edit = [
-	{ run = '${EDITOR:-vi} "$@"', desc = "$EDITOR", block = true, for = "unix" },
+	{ run = 'open -a /Applications/IntelliJ\ IDEA\ 2.app/Contents/MacOS/idea "$@"', desc = "$EDITOR", block = false, for = "unix" },
 	{ run = 'code %*',    orphan = true, desc = "code",           for = "windows" },
 	{ run = 'code -w %*', block = true,  desc = "code (block)",   for = "windows" },
 ]
