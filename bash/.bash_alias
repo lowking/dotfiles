@@ -97,16 +97,18 @@ function js() {
     change_id=$(echo "$j_output" | awk '
       BEGIN {found_head=0}
       found_head==0 && /^@/ {found_head=1; next}
-      found_head==1 && ($0 ~ /^[ \t|│]*(\(empty\) )?\(no description set\)[ \t]*$/) {next}
-      found_head==1 && ($0 !~ /^[ \t|│]*(\(empty\) )?\(no description set\)[ \t]*$/) {
-        if ($0 ~ /^○[[:space:]]+[a-z0-9]{8}/) {
-          sub(/^○[[:space:]]+/, "", $0)
+      found_head==1 && ($0 ~ /.*(\(empty\) )?\(no description set\)$/) {
+        next
+      }
+      found_head==1 && ($0 !~ /.*(\(empty\) )?\(no description set\)$/) {
+        if ($0 ~ /^.[[:space:]]+[a-z0-9]{8}/) {
+          sub(/^.[[:space:]]+/, "", $0)
           print substr($0, 1, 8)
           exit
         }
       }
     ')
-    if [ -z "$change_id" ]; then
+    if [[ "x$change_id" == "x" ]]; then
       echo "未找到有效的 changeId"
       return 2
     fi
