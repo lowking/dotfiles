@@ -13,6 +13,8 @@ set relativenumber
 set ignorecase
 set infercase
 
+command Ss :w | !clear; . ./%
+command SS :w | !clear; . ./%
 command Nd :w | !clear; node %
 command ND :w | !clear; node %
 command Ndp :w | !clear; node % p
