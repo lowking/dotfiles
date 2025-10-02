@@ -1,9 +1,9 @@
 pane	left	0	:left	1	:*	0	:/Users/lowking/Desktop/Scripts	1	zsh	:
 pane	main	0	:personal	0	:	0	:/Users/lowking/Documents/personal	1	zsh	:
-pane	main	1	:gitserver	1	:*	0	:/Users/lowking/Documents/personal	1	zsh	:
+pane	main	1	:gitserver	1	:*	0	:/Users/lowking/Documents/personal	0	zsh	:
 pane	main	1	:gitserver	1	:*	1	:/Users/lowking/Downloads	0	zsh	:
 pane	main	1	:gitserver	1	:*	2	:/Users/lowking	0	zsh	:
-pane	main	1	:gitserver	1	:*	3	:/Users/lowking/dotfiles	0	zsh	:
+pane	main	1	:gitserver	1	:*	3	:/Users/lowking/dotfiles	1	zsh	:
 pane	main	1	:gitserver	1	:*	4	:/Users/lowking/alist-web	0	zsh	:
 pane	main	1	:gitserver	1	:*	5	:/Users/lowking/alist	0	zsh	:
 pane	main	1	:gitserver	1	:*	6	:/Users/lowking/Downloads	0	zsh	:
@@ -27,4 +27,4 @@ window	minikube	0	1	:*	cf7e,167x48,0,0,1
 window	minikube	1	0	:	cf7f,167x48,0,0,2
 window	minikube	2	0	:-	cf80,167x48,0,0,3
 window	top	0	1	:*	3b2c,343x13,0,0{139x13,0,0,4,203x13,140,0,17}
-state	left	
+state	main	left
