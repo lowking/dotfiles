@@ -18,11 +18,11 @@ set NERDTree
 let g:NERDTreeMapActivateNode='l'
 let g:NERDTreeMapJumpParent='h'
 
-testnmap <leader>vr <Action>(IdeaVim.ReloadVimRc.reload)
+nmap <leader>vr <Action>(IdeaVim.ReloadVimRc.reload)
 nmap <leader>ta <Action>(VimFindActionIdAction)
 nmap gD <Action>(GotoImplementation)
 nmap gs <Action>(ShowUsages)
-imap jj <ESC>
+imap ,, <ESC>
 
 
 "VimDeleteJoinLines
