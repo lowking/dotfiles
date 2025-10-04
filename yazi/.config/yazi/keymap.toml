@@ -15,6 +15,7 @@ prepend_keymap = [
     { on = ["<C-y>"], run = "seek -5" },
     { on = ["<C-t>"], run = "plugin system-clipboard" },
     { on = ["<C-x>"], run = "shell 'cp -fr \"$@\" ~/Downloads/temp'" },
+	{ on = ["<C-v>"], run = "shell --block 'vim \"$@\"'" },
 	{ on = ["<A-G>"], run = "shell 'scp \"$@\" root@plex:/mnt/media/games/ && ssh plex \"chown -R plex:plex /mnt/media/games/\"'", desc = "Transmit to Self-host plex" },
 ]
 
