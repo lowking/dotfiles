@@ -18,8 +18,17 @@ set NERDTree
 let g:NERDTreeMapActivateNode='l'
 let g:NERDTreeMapJumpParent='h'
 
-nmap gD :action GotoImplementation<cr>
-nmap gs :action ShowUsages<cr>
+testnmap <leader>vr <Action>(IdeaVim.ReloadVimRc.reload)
+nmap <leader>ta <Action>(VimFindActionIdAction)
+nmap gD <Action>(GotoImplementation)
+nmap gs <Action>(ShowUsages)
+imap jj <ESC>
+
+
+"VimDeleteJoinLines
+"VimDeleteJoinLinesSpaces
+"VimDeleteJoinVisualLines
+"VimDeleteJoinVisualLinesSpaces
 
 " For insert numbers <99 in the lines selected
 vnoremap <F10> :!nl -ba -w 2 -s '. '<CR>
