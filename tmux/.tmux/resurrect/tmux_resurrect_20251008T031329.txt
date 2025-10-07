@@ -1,0 +1,28 @@
+pane	left	0	:left	1	:*	0	:/Users/lowking/dotfiles	1	zsh	:
+pane	main	0	:personal	0	:	0	:/Users/lowking/Documents/personal	1	zsh	:
+pane	main	1	:gitserver	1	:*	0	:/Users/lowking/Documents/personal	0	zsh	:
+pane	main	1	:gitserver	1	:*	1	:/Users/lowking/Downloads	0	zsh	:
+pane	main	1	:gitserver	1	:*	2	:/Users/lowking	0	zsh	:
+pane	main	1	:gitserver	1	:*	3	:/Users/lowking/Documents/personal	1	zsh	:
+pane	main	1	:gitserver	1	:*	4	:/Users/lowking/alist-web	0	zsh	:
+pane	main	1	:gitserver	1	:*	5	:/Users/lowking/alist	0	zsh	:
+pane	main	1	:gitserver	1	:*	6	:/Users/lowking/Downloads	0	zsh	:
+pane	main	2	:Scripts	0	:-	0	:/Users/lowking/Desktop/Scripts	1	zsh	:
+pane	main	3	:nginx	0	:	0	:/usr/local/etc/nginx	1	zsh	:
+pane	main	4	:ry	0	:	0	:/Users/lowking/Desktop/ruoYi	1	zsh	:
+pane	minikube	0	:dashboard	1	:*	0	:/Users/lowking	1	zsh	:
+pane	minikube	1	:ssh	0	:	0	:/Users/lowking	1	zsh	:
+pane	minikube	2	:screen	0	:-	0	:/Users/lowking	1	zsh	:
+pane	top	0	:top	1	:*	0	:/Users/lowking/Downloads	0	zsh	:
+pane	top	0	:top	1	:*	1	:/Users/lowking/dotfiles	1	zsh	:
+window	left	0	1	:*	b7fd,107x52,0,0,0
+window	main	0	0	:	cf82,167x48,0,0,5
+window	main	1	1	:*	614e,167x48,0,0{107x48,0,0[107x2,0,0{51x2,0,0,6,28x2,52,0,11,26x2,81,0,12},107x45,0,3,19],59x48,108,0[59x15,108,0,14,59x16,108,16,15,59x15,108,33,16]}
+window	main	2	0	:-	cf84,167x48,0,0,7
+window	main	3	0	:	cf86,167x48,0,0,9
+window	main	4	0	:	67ef,167x48,0,0,10
+window	minikube	0	1	:*	cf7e,167x48,0,0,1
+window	minikube	1	0	:	cf7f,167x48,0,0,2
+window	minikube	2	0	:-	cf80,167x48,0,0,3
+window	top	0	1	:*	3b2c,343x13,0,0{139x13,0,0,4,203x13,140,0,17}
+state	main	left
