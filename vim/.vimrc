@@ -15,6 +15,8 @@ set infercase
 
 imap ,, <ESC>
 
+command Cg :w | !clear; cargo run
+command CG :w | !clear; cargo run
 command Ss :w | !clear; . ./%
 command SS :w | !clear; . ./%
 command Nd :w | !clear; node %
