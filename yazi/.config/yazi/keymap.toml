@@ -35,6 +35,7 @@ keymap = [
 	{ on = [ "g", "S" ],       run = "cd ~/Desktop/Scripts",    desc = "Go ~/Desktop/Scripts" },
 	{ on = [ "g", "s" ],       run = "cd \"/Users/lowking/Library/Application Support/Steam/steamapps/common/Hollow Knight/hollow_knight.app/Contents/Resources/Data/Managed/mods/Custom Knight/Skins\"",    desc = "Go Skins of Hollow Knight" },
 	{ on = [ "g", "t" ],       run = "cd /Users/lowking/.Trash",desc = "Go Trash" },
+	{ on = [ "g", "V" ],       run = "cd /Volumes",             desc = "Go Volumes" },
 	{ on = [ "g", "<Space>" ], run = "cd --interactive",        desc = "Jump interactively" },
 	{ on = [ "g", "f" ],       run = "follow",                  desc = "Follow hovered symlink" },
 
