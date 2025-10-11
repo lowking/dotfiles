@@ -93,7 +93,8 @@ function js() {
   cleaned_subject=$(echo "$current_commit_subject" | awk '{gsub(/^[ \t|│]+/, ""); gsub(/[ \t]+$/, ""); print}')
 
   # 判断是否为 (no description set)
-  if [[ "$cleaned_subject" == "(no description set)" || "$cleaned_subject" == "(empty) (no description set)" ]]; then
+  hasR=$(echo "$extra_args" |grep "\-r")
+  if [[ "$hasR" == "" ]] && [[ "$cleaned_subject" == "(no description set)" || "$cleaned_subject" == "(empty) (no description set)" ]]; then
     # 查找最近的一个不是 (no description set) 的 changeId
     change_id=$(echo "$j_output" | awk '
       BEGIN {found_head=0}
