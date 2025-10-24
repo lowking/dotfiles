@@ -70,9 +70,12 @@ alias jme='jj metaedit'
 alias jn='jj new'
 alias jow='jj show'
 alias jsp='jj split'
-alias jrb='jj rebase'
 alias jrs='jj restore'
 alias jrv='jj git remote list'
+fucntion jrb() {
+    jj rebase "$@"
+    gst
+}
 function js() {
   # 检查参数
   if [ $# -lt 1 ]; then
@@ -122,7 +125,7 @@ function js() {
 }
 compdef _jj js
 fucntion jsq() {
-    jj squash
+    jj squash "$@"
     gst
 }
 fucntion jst() {
