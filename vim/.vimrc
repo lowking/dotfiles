@@ -2,6 +2,7 @@ let $BASH_ENV="~/.vim_bash_env"
 
 syntax on
 colorscheme jellybeans
+set re=0
 set ts=4
 set so=5
 set softtabstop=4
