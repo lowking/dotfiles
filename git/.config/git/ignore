@@ -31,6 +31,7 @@ pnpm-lock.yaml
 node_modules
 
 ### others ###
+*.sw[a-z]
 .wakatime-project
 /target/
 **/.claude/settings.local.json
