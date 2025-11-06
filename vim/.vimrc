@@ -1,4 +1,4 @@
-let $BASH_ENV="~/.vim_bash_env"
+" let $BASH_ENV="~/.vim_bash_env"  " 已注释，直接使用 ~/.bashrc
 
 syntax on
 colorscheme jellybeans
@@ -147,7 +147,7 @@ function! ExecuteCommandConcurrent(command_text, count)
         let python_script = tempname() . ".py"
         let python_code = [
             \ "#!/usr/bin/env python3",
-            \ "import subprocess, sys, time",
+            \ "import subprocess, sys, time, os",
             \ "from concurrent.futures import ThreadPoolExecutor",
             \ "from datetime import datetime",
             \ "",
@@ -155,12 +155,21 @@ function! ExecuteCommandConcurrent(command_text, count)
             \ "    cmd = f.read().strip()",
             \ ""
             \ ] + GetPythonFixQuoteEscapeCode() + [
+            \ "# Source 环境配置 - 使用 bash_profile (zsh 也会加载)",
+            \ "bash_profile = os.path.expanduser('~/.bash_profile')",
+            \ "if os.path.exists(bash_profile):",
+            \ "    source_cmd = f'. {bash_profile} 2>/dev/null; '",
+            \ "else:",
+            \ "    source_cmd = ''",
+            \ "",
             \ "def run_command(cmd, index):",
             \ "    start_time = time.time()",
             \ "    # 记录执行开始的时间点，格式：YYYY-MM-dd HH:mm:ss.sss",
             \ "    timestamp = datetime.fromtimestamp(start_time).strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]",
             \ "    try:",
-            \ "        result = subprocess.run(cmd, shell=True, executable='/bin/sh',",
+            \ "        # 在命令前添加 source 环境配置",
+            \ "        full_cmd = source_cmd + cmd",
+            \ "        result = subprocess.run(full_cmd, shell=True, executable='/bin/zsh',",
             \ "                              capture_output=True, text=True,",
             \ "                              stdin=subprocess.DEVNULL)",
             \ "        # 先输出响应内容（stdout），再输出统计信息（stderr），用换行分隔",
@@ -317,15 +326,20 @@ function! ExecuteCommand(command_text)
         let python_script = tempname() . ".py"
         let python_code = [
             \ "#!/usr/bin/env python3",
-            \ "import subprocess, sys",
+            \ "import subprocess, sys, os",
             \ "with open('" . temp_file . "', 'r', encoding='utf-8', errors='ignore') as f:",
             \ "    cmd = f.read().strip()",
             \ ""
             \ ] + GetPythonFixQuoteEscapeCode() + [
             \ "cmd = fix_single_quote_escape(cmd)",
             \ "",
+            \ "# Source 环境配置 - 使用 bash_profile (zsh 也会加载)",
+            \ "bash_profile = os.path.expanduser('~/.bash_profile')",
+            \ "if os.path.exists(bash_profile):",
+            \ "    cmd = f'. {bash_profile} 2>/dev/null; ' + cmd",
+            \ "",
             \ "try:",
-            \ "    result = subprocess.run(cmd, shell=True, executable='/bin/sh',",
+            \ "    result = subprocess.run(cmd, shell=True, executable='/bin/zsh',",
             \ "                          capture_output=True, text=True,",
             \ "                          stdin=subprocess.DEVNULL)",
             \ "    stdout = result.stdout.rstrip('\\n\\r')",
