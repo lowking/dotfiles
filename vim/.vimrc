@@ -1,5 +1,8 @@
 " let $BASH_ENV="~/.vim_bash_env"  " 已注释，直接使用 ~/.bashrc
 
+" 让 y 复制到系统剪贴板
+set clipboard=unnamed
+
 syntax on
 colorscheme jellybeans
 set re=0
@@ -37,6 +40,9 @@ autocmd BufReadPost *
 " 配置 <leader>] 快捷键：执行选中代码并将结果追加到下一行
 " 支持数字前缀，如 10<leader>] 会执行10次
 vnoremap <leader>] :<C-U>call ExecuteAndAppend(v:count1)<CR>
+" 配置 <leader>c 快捷键：格式化选中的 curl 命令
+vnoremap <leader>c :<C-U>call FormatCurl()<CR>
+nnoremap <leader>c :<C-U>call FormatCurl()<CR>
 " 配置 <leader>[ 快捷键：使用 jq 格式化 JSON
 " 没选中文本：格式化当前行并替换
 " 选中文本：将多行压缩成一行并替换
@@ -91,17 +97,19 @@ function! ExecuteAndAppend(count)
         " 按顺序追加所有结果
         let i = 1
         for result_item in results
-            " 解析结果：result_item 是 [timestamp, content] 或直接是字符串
+            " 解析结果：result_item 是 [timestamp, elapsed, content] 或直接是字符串
             let timestamp = ""
+            let elapsed = ""
             let result = ""
-            if type(result_item) == 3 && len(result_item) == 2
+            if type(result_item) == 3 && len(result_item) == 3
                 let timestamp = result_item[0]
-                let result = result_item[1]
+                let elapsed = result_item[1]
+                let result = result_item[2]
             else
                 let result = result_item
             endif
-            
-            call AppendResult(last_line, result, timestamp, i, exec_count)
+
+            call AppendResult(last_line, result, timestamp, elapsed, i, exec_count)
             " 更新 last_line：分隔行(1) + 结果行数 + (如果不是最后一个结果，还有分隔空行1)
             let result_lines = GetResultLineCount(result)
             let last_line = last_line + 1 + result_lines + (i < exec_count ? 1 : 0)
@@ -109,8 +117,11 @@ function! ExecuteAndAppend(count)
         endfor
     else
         " 单次执行，直接调用
-        let result = ExecuteCommand(processed_text)
-        call AppendResult(last_line, result, "", 1, 1)
+        let result_data = ExecuteCommand(processed_text)
+        " result_data 是 [elapsed, content]
+        let elapsed = result_data[0]
+        let result = result_data[1]
+        call AppendResult(last_line, result, "", elapsed, 1, 1)
     endif
     
     " 恢复选中状态，方便再次执行
@@ -143,28 +154,33 @@ function! ExecuteCommandConcurrent(command_text, count)
         let python_code = [
             \ "#!/usr/bin/env python3",
             \ "import subprocess, sys, time, os",
-            \ "from concurrent.futures import ThreadPoolExecutor",
+            \ "from concurrent.futures import ThreadPoolExecutor, as_completed",
             \ "from datetime import datetime",
             \ "",
             \ "script_path = '" . temp_script . "'",
             \ "",
-            \ "# Source 环境配置",
-            \ "bash_profile = os.path.expanduser('~/.bash_profile')",
-            \ "if os.path.exists(bash_profile):",
-            \ "    source_cmd = f'. {bash_profile} 2>/dev/null; '",
+            \ "# Source zsh 配置（如不需要可注释此段以提升性能）",
+            \ "zshrc = os.path.expanduser('~/.zshrc')",
+            \ "if os.path.exists(zshrc):",
+            \ "    source_cmd = f'. {zshrc} 2>/dev/null; '",
             \ "else:",
             \ "    source_cmd = ''",
             \ "",
             \ "def run_command(index):",
+            \ "    # 记录开始时间（只计算脚本执行时间）",
             \ "    start_time = time.time()",
             \ "    timestamp = datetime.fromtimestamp(start_time).strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]",
             \ "    try:",
-            \ "        cmd = source_cmd + 'zsh ' + script_path",
-            \ "        result = subprocess.run(cmd, shell=True, executable='/bin/zsh',",
+            \ "        # 直接执行脚本，不加载配置（如需配置，在脚本开头自行 source）",
+            \ "        result = subprocess.run(['zsh', script_path],",
             \ "                              capture_output=True, text=True,",
             \ "                              stdin=subprocess.DEVNULL)",
-            \ "        stdout = result.stdout.rstrip('\\n\\r')",
-            \ "        stderr = result.stderr.rstrip('\\n\\r')",
+            \ "        end_time = time.time()",
+            \ "        elapsed = f'{end_time - start_time:.3f}s'",
+            \ "        stdout = result.stdout.replace('\\r', '\\n')",
+            \ "        stderr = result.stderr.replace('\\r', '\\n')",
+            \ "        stdout = stdout.rstrip('\\n')",
+            \ "        stderr = stderr.rstrip('\\n')",
             \ "        if stdout and stderr:",
             \ "            output = stdout + '\\n' + stderr",
             \ "        elif stdout:",
@@ -175,25 +191,29 @@ function! ExecuteCommandConcurrent(command_text, count)
             \ "            output = ''",
             \ "        if result.returncode != 0:",
             \ "            output = '【执行错误，退出码: ' + str(result.returncode) + '】\\n' + output",
-            \ "        return (index, timestamp, output)",
+            \ "        return (index, timestamp, elapsed, output)",
             \ "    except Exception as e:",
-            \ "        return (index, timestamp, '【执行异常: ' + str(e) + '】')",
+            \ "        end_time = time.time()",
+            \ "        elapsed = f'{end_time - start_time:.3f}s'",
+            \ "        return (index, timestamp, elapsed, '【执行异常: ' + str(e) + '】')",
             \ "",
             \ "count = " . a:count,
             \ "",
-            \ "# 使用线程池并发执行",
+            \ "# 使用线程池并发执行，结果按索引顺序存储",
             \ "results = [None] * count",
             \ "with ThreadPoolExecutor(max_workers=count) as executor:",
-            \ "    futures = [executor.submit(run_command, i) for i in range(count)]",
-            \ "    for i in range(len(futures)):",
-            \ "        index, timestamp, output = futures[i].result()",
-            \ "        results[i] = (timestamp, output)",
+            \ "    # 创建 future 到 index 的映射",
+            \ "    future_to_index = {executor.submit(run_command, i): i for i in range(count)}",
+            \ "    # 使用 as_completed 处理完成的任务，但结果按索引存储",
+            \ "    for future in as_completed(future_to_index):",
+            \ "        index, timestamp, elapsed, output = future.result()",
+            \ "        results[index] = (timestamp, elapsed, output)",
             \ "",
-            \ "# 输出结果",
-            \ "for i, (timestamp, output) in enumerate(results):",
+            \ "# 按索引顺序输出结果",
+            \ "for i, (timestamp, elapsed, output) in enumerate(results):",
             \ "    if i > 0:",
             \ "        sys.stdout.write('\\n---RESULT_SEPARATOR---\\n')",
-            \ "    sys.stdout.write(timestamp + '|' + output)",
+            \ "    sys.stdout.write(timestamp + '|' + elapsed + '|' + output)",
             \ "    if not output.endswith('\\n'):",
             \ "        sys.stdout.write('\\n')",
             \ ]
@@ -221,15 +241,16 @@ function! ExecuteCommandConcurrent(command_text, count)
         for raw_result in raw_results
             if raw_result =~ '^\d\{4}-\d\{2}-\d\{2} \d\{2}:\d\{2}:\d\{2}\.\d\{3}|'
                 let parts = split(raw_result, '|', 1)
-                if len(parts) >= 2
+                if len(parts) >= 3
                     let timestamp = parts[0]
-                    let content = join(parts[1:], '|')
-                    call add(results, [timestamp, content])
+                    let elapsed = parts[1]
+                    let content = join(parts[2:], '|')
+                    call add(results, [timestamp, elapsed, content])
                 else
-                    call add(results, ["", raw_result])
+                    call add(results, ["", "", raw_result])
                 endif
             else
-                call add(results, ["", raw_result])
+                call add(results, ["", "", raw_result])
             endif
         endfor
 
@@ -287,6 +308,7 @@ endfunction
 function! ExecuteCommand(command_text)
     " 创建临时 shell 脚本文件
     let temp_script = tempname() . ".sh"
+    let temp_stderr = tempname() . ".stderr"
 
     try
         " 将选中的文本原样写入临时脚本文件
@@ -295,36 +317,74 @@ function! ExecuteCommand(command_text)
         " 给脚本添加执行权限
         call system("chmod +x " . shellescape(temp_script))
 
-        " 执行脚本，source bash_profile 以加载环境变量
-        let cmd = ". ~/.bash_profile 2>/dev/null; zsh " . shellescape(temp_script) . " 2>&1"
-        let result = system(cmd)
+        " 记录开始时间（只计算脚本执行时间）
+        let start_time = reltime()
+
+        " 执行脚本，分别捕获 stdout 和 stderr
+        " 不自动加载配置，如果需要 zsh 配置（如函数、别名），在脚本开头添加：
+        " source ~/.zshrc
+        let cmd = "zsh " . shellescape(temp_script) . " 2>" . shellescape(temp_stderr)
+        let stdout = system(cmd)
         let exit_code = v:shell_error
+
+        " 计算耗时
+        let elapsed_time = reltimestr(reltime(start_time))
+        let elapsed = printf("%.3fs", str2float(elapsed_time))
+
+        " 读取 stderr
+        let stderr = ""
+        if filereadable(temp_stderr)
+            let stderr = join(readfile(temp_stderr, 'b'), "\n")
+        endif
+
+        " 将 \r 替换成 \n（curl 进度信息使用 \r 更新同一行）
+        let stdout = substitute(stdout, '\r', '\n', 'g')
+        let stderr = substitute(stderr, '\r', '\n', 'g')
+
+        " 去除末尾的换行符
+        let stdout = substitute(stdout, '\n\+$', '', '')
+        let stderr = substitute(stderr, '\n\+$', '', '')
+
+        " 按照和并发执行相同的顺序组合 stdout 和 stderr
+        let result = ""
+        if stdout != "" && stderr != ""
+            let result = stdout . "\n" . stderr
+        elseif stdout != ""
+            let result = stdout
+        elseif stderr != ""
+            let result = stderr
+        endif
 
         " 如果执行失败，添加错误信息
         if exit_code != 0
             let result = "【执行错误，退出码: " . exit_code . "】\n" . result
         endif
 
-        return result
+        return [elapsed, result]
     finally
         " 清理临时文件
         if filereadable(temp_script)
             call delete(temp_script)
         endif
+        if filereadable(temp_stderr)
+            call delete(temp_stderr)
+        endif
     endtry
 endfunction
 
 " 追加执行结果到文件
-function! AppendResult(last_line, result, timestamp, index, total)
+function! AppendResult(last_line, result, timestamp, elapsed, index, total)
     " 去除结果末尾的换行符
     let result = substitute(a:result, '\n\+$', '', '')
-    
+
     " 将结果按行分割（保留空行）
     let lines = split(result, '\n', 1)
-    
-    " 添加分隔行标识每次执行，包含执行时间点
-    if a:timestamp != ""
-        call append(a:last_line, "--- 执行 #" . a:index . " (" . a:timestamp . ") ---")
+
+    " 添加分隔行标识每次执行，包含执行时间点和耗时
+    if a:timestamp != "" && a:elapsed != ""
+        call append(a:last_line, "--- 执行 #" . a:index . " (" . a:timestamp . ", 耗时 " . a:elapsed . ") ---")
+    elseif a:elapsed != ""
+        call append(a:last_line, "--- 执行 #" . a:index . " (耗时 " . a:elapsed . ") ---")
     else
         call append(a:last_line, "--- 执行 #" . a:index . " ---")
     endif
@@ -351,20 +411,25 @@ function! GetResultLineCount(result)
 endfunction
 
 function! GetVisualSelection()
+    " 临时禁用 clipboard，避免覆盖系统剪贴板
+    let save_clipboard = &clipboard
+    set clipboard=
+
     " 保存当前寄存器
     let save_reg = @"
     let save_reg_type = getregtype('"')
-    
+
     try
         " 使用 silent 避免输出，使用 noautocmd 避免触发自动命令
         silent! noautocmd normal! gvy
-        
+
         " 获取选中的文本
         let selected = @"
         return selected
     finally
-        " 恢复寄存器
+        " 恢复寄存器和 clipboard 设置
         call setreg('"', save_reg, save_reg_type)
+        let &clipboard = save_clipboard
     endtry
 endfunction
 
@@ -669,5 +734,173 @@ function! FormatJSONWithJQ(text, compact)
     let result = substitute(result, '\n\+$', '', '')
 
     return result
+endfunction
+
+
+" ============================================================================
+" 格式化 curl 命令
+" ============================================================================
+function! FormatCurl()
+    " 检查是否有选中文本（通过检查 '< 和 '> 标记）
+    let start_line = line("'<")
+    let end_line = line("'>")
+    let current_line = line(".")
+
+    " 如果 start_line 和 end_line 不同，或者它们不等于当前行，说明有选中
+    let has_selection = (start_line != end_line) || (start_line != current_line)
+
+    if has_selection
+        " 有选中文本
+        " 获取选中的文本
+        let lines = getline(start_line, end_line)
+        let selected_text = join(lines, "\n")
+    else
+        " 没有选中文本，使用当前行
+        let start_line = current_line
+        let end_line = current_line
+        let selected_text = getline(".")
+    endif
+
+    " 保存当前光标位置
+    let save_cursor = getpos(".")
+
+    if selected_text == ""
+        echoerr "文本为空"
+        return
+    endif
+
+    " 格式化
+    let formatted = FormatCurlText(selected_text)
+
+    if formatted == ""
+        echoerr "格式化失败"
+        return
+    endif
+
+    " 替换选中的文本
+    execute start_line . "," . end_line . "delete"
+    let formatted_lines = split(formatted, '\n', 1)
+    call append(start_line - 1, formatted_lines)
+
+    " 恢复光标位置
+    call setpos(".", save_cursor)
+endfunction
+
+function! FormatCurlText(text)
+    let temp_input = tempname()
+
+    try
+        " 写入输入文本
+        call writefile(split(a:text, '\n', 1), temp_input)
+
+        " Python 脚本
+        let python_code = [
+            \ "import re",
+            \ "",
+            \ "with open('" . temp_input . "', 'r') as f:",
+            \ "    text = f.read()",
+            \ "",
+            \ "def find_and_convert(text):",
+            \ "    result = []",
+            \ "    i = 0",
+            \ "    ",
+            \ "    while i < len(text):",
+            \ "        # 尝试匹配参数标记 -xxx 或 --xxx",
+            \ "        match = re.match(r'(--?[a-zA-Z][a-zA-Z0-9-]*)(\\s+)', text[i:])",
+            \ "        if match:",
+            \ "            param = match.group(1)",
+            \ "            space = match.group(2)",
+            \ "            i += len(match.group(0))",
+            \ "            ",
+            \ "            # 检查后面是否是引号",
+            \ "            if i < len(text):",
+            \ "                quote_char = text[i]",
+            \ "                ",
+            \ "                if quote_char == \"'\":",
+            \ "                    # 单引号：找到结束的单引号并转换",
+            \ "                    i += 1  # 跳过开始的单引号",
+            \ "                    content_start = i",
+            \ "                    ",
+            \ "                    # 找结束的单引号（考虑 \\' 转义）",
+            \ "                    while i < len(text):",
+            \ "                        if text[i] == \"'\":",
+            \ "                            # 找到单引号，结束",
+            \ "                            break",
+            \ "                        elif text[i] == '\\\\' and i + 1 < len(text) and text[i + 1] == \"'\":",
+            \ "                            # 跳过 \\\\'",
+            \ "                            i += 2",
+            \ "                        else:",
+            \ "                            i += 1",
+            \ "                    ",
+            \ "                    content = text[content_start:i]",
+            \ "                    ",
+            \ "                    # 转换内容",
+            \ "                    content = content.replace(\"\\\\\\'\" , \"'\")",
+            \ "                    content = content.replace('\"', '\\\\\"')",
+            \ "                    content = content.replace('$', '\\\\$')",
+            \ "                    content = content.replace('`', '\\\\`')",
+            \ "                    ",
+            \ "                    # 输出转换后的内容",
+            \ "                    result.append(param + space + '\"' + content + '\"')",
+            \ "                    i += 1  # 跳过结束的单引号",
+            \ "                    ",
+            \ "                elif quote_char == '\"':",
+            \ "                    # 双引号：直接输出，不转换",
+            \ "                    i += 1  # 跳过开始的双引号",
+            \ "                    content_start = i",
+            \ "                    ",
+            \ "                    # 找结束的双引号",
+            \ "                    while i < len(text):",
+            \ "                        if text[i] == '\"' and (i == 0 or text[i-1] != '\\\\'):",
+            \ "                            break",
+            \ "                        i += 1",
+            \ "                    ",
+            \ "                    content = text[content_start:i]",
+            \ "                    result.append(param + space + '\"' + content + '\"')",
+            \ "                    i += 1  # 跳过结束的双引号",
+            \ "                    ",
+            \ "                else:",
+            \ "                    # 不是引号，输出参数标记",
+            \ "                    result.append(param + space)",
+            \ "            else:",
+            \ "                result.append(param + space)",
+            \ "        else:",
+            \ "            # 不是参数标记，直接输出字符",
+            \ "            result.append(text[i])",
+            \ "            i += 1",
+            \ "    ",
+            \ "    return ''.join(result)",
+            \ "",
+            \ "result = find_and_convert(text)",
+            \ "print(result, end='')",
+            \ ]
+
+        let python_script = tempname() . ".py"
+        call writefile(python_code, python_script)
+
+        " 执行 Python 脚本
+        let result = system("python3 " . shellescape(python_script) . " 2>&1")
+        let exit_code = v:shell_error
+
+        " 清理 Python 脚本
+        if filereadable(python_script)
+            call delete(python_script)
+        endif
+
+        if exit_code != 0
+            echoerr "格式化失败: " . result
+            return ""
+        endif
+
+        " 去除末尾换行符
+        let result = substitute(result, '\n\+$', '', '')
+
+        return result
+    finally
+        " 清理临时文件
+        if filereadable(temp_input)
+            call delete(temp_input)
+        endif
+    endtry
 endfunction
 
