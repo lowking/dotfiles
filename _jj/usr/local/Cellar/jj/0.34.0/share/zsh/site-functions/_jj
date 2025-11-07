@@ -2,7 +2,7 @@
 
 function log() {
     local logFile=/Users/lowking/nohups/jj.log
-    echo $@ >> $logFile
+    echo "$@" >> $logFile
 }
 
 function _clap_fallback_path_completion() {
@@ -71,3 +71,235 @@ function _clap_dynamic_completer_jj() {
     _clap_fallback_path_completion
 }
 compdef _clap_dynamic_completer_jj jj
+
+function _js() {
+    # 如果当前是第一个参数（即 js 后面直接 tab）
+    if (( CURRENT == 2 )); then
+        # 获取所有分支，去掉 : 后面的内容
+        local branches
+        branches=(${(f)"$(jj b l 2>/dev/null | awk -F: '{print $1}')"})
+        compadd -Q -S ' ' -- "${branches[@]}"
+    else
+        # 其他情况使用 jj 的补全逻辑
+        # 将 words 数组的第一个元素从 js 改为 jj b s，然后调用 jj 的补全
+        local modified_words=("jj" "b" "s" "${words[@]:2}")
+        local _CLAP_COMPLETE_INDEX=$((CURRENT + 1))  # 因为增加了 b s 两个词
+        local _CLAP_IFS=$'\n'
+
+        local completions
+        completions=("${(@f)$( \
+            _CLAP_IFS="$_CLAP_IFS" \
+            _CLAP_COMPLETE_INDEX="$_CLAP_COMPLETE_INDEX" \
+            COMPLETE="zsh" \
+            /usr/local/Cellar/jj/0.34.0/bin/jj -- "${modified_words[@]}" 2>/dev/null \
+        )}")
+
+        if (( ${#completions[@]} )); then
+            local params=()
+            for item in "${completions[@]}"; do
+                if [[ "$item" == --* || "$item" == *:* ]]; then
+                    params+=("${item%%:*}")
+                fi
+            done
+
+            if (( ${#params[@]} )); then
+                compadd -Q -S ' ' -- "${params[@]}"
+                return
+            fi
+        fi
+
+        _clap_fallback_path_completion
+    fi
+}
+compdef _js js
+
+# jdf 使用路径补全
+function _jdf() {
+    _files
+}
+compdef -d jdf 2>/dev/null
+compdef _jdf jdf
+
+# jab 使用路径补全
+function _jab() {
+    _files
+}
+compdef -d jab 2>/dev/null
+compdef _jab jab
+
+# jrs 使用路径补全
+function _jrs() {
+    _files
+}
+compdef -d jrs 2>/dev/null
+compdef _jrs jrs
+
+# je 和 jd 的补全：第一个参数不显示 -- 参数，后续参数只显示 -- 参数
+function _je() {
+    local cmd="edit"
+    _jj_custom_complete "$cmd"
+}
+
+function _jd() {
+    local cmd="desc"
+    _jj_custom_complete "$cmd"
+}
+
+function _jj_custom_complete() {
+    local cmd="$1"
+    # 构建 modified_words：将 je/jd 转换为 jj edit/desc
+    local modified_words=("jj" "$cmd" "${words[@]:1}")
+
+    # _CLAP_COMPLETE_INDEX 需要 +1，因为在 words 中位置 1 是 "je/jd"，但在 modified_words 中位置 1 是 "jj"，位置 2 是 "edit/desc"
+    local _CLAP_COMPLETE_INDEX=$((CURRENT))
+    local _CLAP_IFS=$'\n'
+
+    log "_jj_custom_complete cmd=$cmd, CURRENT=$CURRENT, words='${words[*]}', modified_words='${modified_words[*]}'"
+
+    local completions
+    completions=("${(@f)$( \
+        _CLAP_IFS="$_CLAP_IFS" \
+        _CLAP_COMPLETE_INDEX="$_CLAP_COMPLETE_INDEX" \
+        COMPLETE="zsh" \
+        /usr/local/Cellar/jj/0.34.0/bin/jj -- "${modified_words[@]}" 2>/dev/null \
+    )}")
+
+    log "completions count=${#completions[@]}, completions=${completions[*]}"
+
+    if (( ${#completions[@]} )); then
+        if (( CURRENT == 2 )); then
+            # 第一个参数：只显示 revision/branch，不显示 -- 参数
+            local non_params=()
+            for item in "${completions[@]}"; do
+                if [[ "$item" != --* ]]; then
+                    non_params+=("$item")
+                fi
+            done
+            if (( ${#non_params[@]} )); then
+                log "第一个参数补全 non_params=${non_params[*]}"
+                compadd -Q -S ' ' -- "${non_params[@]}"
+            fi
+            return
+        else
+            # 后续参数：只显示 -- 参数
+            local params=()
+            for item in "${completions[@]}"; do
+                if [[ "$item" == --* ]]; then
+                    # 去掉 : 后面的描述
+                    params+=("${item%%:*}")
+                fi
+            done
+            log "后续参数补全 params=${params[*]}"
+            if (( ${#params[@]} )); then
+                compadd -S ' ' -- "${params[@]}"
+            fi
+            return
+        fi
+    fi
+
+    log "兜底补全"
+    _clap_fallback_path_completion
+}
+
+compdef -d je 2>/dev/null
+compdef _je je
+compdef -d jd 2>/dev/null
+compdef _jd jd
+
+# jow 和 je/jd 一样的补全逻辑
+function _jow() {
+    local cmd="show"
+    _jj_custom_complete "$cmd"
+}
+compdef -d jow 2>/dev/null
+compdef _jow jow
+
+# jgp 使用 jj git push 的补全
+function _jgp() {
+    log "_jgp 被调用, CURRENT=$CURRENT, words=${words[@]}"
+
+    # 构建 modified_words 数组
+    local modified_words=("jj" "git" "push")
+    if (( CURRENT > 2 )); then
+        modified_words+=("${words[@]:2}")
+    fi
+
+    local _CLAP_COMPLETE_INDEX=$((CURRENT + 1))  # 因为增加了 git push 两个词
+    local _CLAP_IFS=$'\n'
+
+    log "modified_words=${modified_words[@]}, _CLAP_COMPLETE_INDEX=$_CLAP_COMPLETE_INDEX"
+
+    local completions
+    completions=("${(@f)$( \
+        _CLAP_IFS="$_CLAP_IFS" \
+        _CLAP_COMPLETE_INDEX="$_CLAP_COMPLETE_INDEX" \
+        COMPLETE="zsh" \
+        /usr/local/Cellar/jj/0.34.0/bin/jj -- "${modified_words[@]}" 2>/dev/null \
+    )}")
+
+    log "completions count=${#completions[@]}, completions=${completions[@]}"
+
+    if (( ${#completions[@]} )); then
+        local params=()
+        for item in "${completions[@]}"; do
+            if [[ "$item" == --* || "$item" == *:* ]]; then
+                params+=("${item%%:*}")
+            fi
+        done
+
+        if (( ${#params[@]} )); then
+            log "参数补全 params=${params[@]}"
+            compadd -Q -S ' ' -- "${params[@]}"
+            return
+        fi
+    fi
+
+    log "兜底补全"
+    _clap_fallback_path_completion
+}
+compdef -d jgp 2>/dev/null
+compdef _jgp jgp
+
+# jsq 使用 jj squash 的补全
+function _jsq() {
+    log "_jsq 被调用, CURRENT=$CURRENT, words='${words[*]}'"
+
+    # 构建 modified_words 数组：将 jsq 转换为 jj squash
+    local modified_words=("jj" "squash" "${words[@]:1}")
+
+    # jsq 被替换为 jj squash（net +1 个词），所以 index = CURRENT - 1 + 1 = CURRENT
+    local _CLAP_COMPLETE_INDEX=$((CURRENT))
+    local _CLAP_IFS=$'\n'
+
+    log "modified_words='${modified_words[*]}', _CLAP_COMPLETE_INDEX=$_CLAP_COMPLETE_INDEX"
+
+    local completions
+    completions=("${(@f)$( \
+        _CLAP_IFS="$_CLAP_IFS" \
+        _CLAP_COMPLETE_INDEX="$_CLAP_COMPLETE_INDEX" \
+        COMPLETE="zsh" \
+        /usr/local/Cellar/jj/0.34.0/bin/jj -- "${modified_words[@]}" 2>/dev/null \
+    )}")
+
+    log "completions count=${#completions[@]}, completions='${completions[*]}'"
+
+    if (( ${#completions[@]} )); then
+        local params=()
+        for item in "${completions[@]}"; do
+            if [[ "$item" == --* || "$item" == *:* ]]; then
+                params+=("${item%%:*}")
+            fi
+        done
+
+        if (( ${#params[@]} )); then
+            log "参数补全 params='${params[*]}'"
+            compadd -Q -S ' ' -- "${params[@]}"
+            return
+        fi
+    fi
+
+    log "兜底补全"
+    _clap_fallback_path_completion
+}
+compdef -d jsq 2>/dev/null
+compdef _jsq jsq

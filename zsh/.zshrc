@@ -118,8 +118,12 @@ plugins=(zsh-syntax-highlighting)
 ENABLE_CORRECTION="true"
 
 # zsh命令补全配置
-# autoload -Uz compinit && compinit
-# zstyle ':completion:*' matcher-list 'm:{a-z}={A-Z}'
+autoload -Uz compinit && compinit
+# 加载 jj 补全文件（使用通配符匹配版本号）
+for jj_completion in /Users/lowking/dotfiles/_jj/usr/local/Cellar/jj/*/share/zsh/site-functions/_jj(N); do
+  source "$jj_completion"
+done
+zstyle ':completion:*' matcher-list 'm:{a-z}={A-Z}'
 
 
 
@@ -152,3 +156,13 @@ zplug load
 source /Users/lowking/bin/t_complete
 
 source ~/.bash_profile
+
+# 覆盖补全
+compdef _jdf jdf
+compdef _jab jab
+compdef _jrs jrs
+compdef _je je
+compdef _jd jd
+compdef _jow jow
+compdef _jgp jgp
+compdef _jsq jsq
