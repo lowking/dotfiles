@@ -4,3 +4,6 @@
 douyuCookieFile=/Users/lowking/douyu-gift/config/cookie.txt
 echo $(pbpaste) > "$douyuCookieFile"
 t douyu
+
+source ~/.zshrc
+eza
