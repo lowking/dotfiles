@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+
+douyuCookieFile=/Users/lowking/douyu-gift/config/cookie.txt
+echo $(pbpaste) > "$douyuCookieFile"
+t douyu
