@@ -123,7 +123,17 @@ function! ExecuteAndAppend(count)
         let result = result_data[1]
         call AppendResult(last_line, result, "", elapsed, 1, 1)
     endif
-    
+
+    " 如果安装了 AnsiEsc 插件，使用它来渲染 ANSI 颜色
+    if exists(':AnsiEsc') == 2
+        " 保存当前光标位置
+        let save_cursor = getpos('.')
+        " 调用 AnsiEsc 渲染颜色
+        silent! AnsiEsc
+        " 恢复光标位置
+        call setpos('.', save_cursor)
+    endif
+
     " 恢复选中状态，方便再次执行
     " 根据原始的可视模式类型恢复选择
     if visual_mode ==# 'V'
@@ -389,14 +399,14 @@ function! AppendResult(last_line, result, timestamp, elapsed, index, total)
         call append(a:last_line, "--- 执行 #" . a:index . " ---")
     endif
     let current_line = a:last_line + 1
-    
+
     " 如果结果为空，插入空行；否则插入所有结果行
     if len(lines) == 0
         call append(current_line, "")
     else
         call append(current_line, lines)
     endif
-    
+
     " 在结果之间添加空行分隔（最后一个结果不加）
     if a:index <= a:total
         call append(current_line + len(lines), "")
