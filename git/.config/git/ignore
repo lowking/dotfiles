@@ -34,4 +34,11 @@ node_modules
 *.sw[a-z]
 .wakatime-project
 /target/
-**/.claude/settings.local.json
+
+### Claude Code ###
+**/CLAUDE.md
+.claude/
+claude-*.json
+.claude_history
+*-claude-*.log
+claude_workspace/
