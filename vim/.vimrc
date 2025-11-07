@@ -60,29 +60,21 @@ function! ExecuteAndAppend(count)
     
     " 获取选中的文本（在退出可视模式前）
     let selected_text = GetVisualSelection()
-    
+
     " 立即退出可视模式，避免重复触发
     execute "normal! \<Esc>"
-    
+
     " 去除选中文本末尾的换行符
     let selected_text = substitute(selected_text, '\n$', '', '')
-    
+
     " 如果命令为空，直接返回
     if selected_text == ""
         echoerr "选中的文本为空"
         return
     endif
-    
-    " 处理续行符：将续行符和换行符合并成单行
+
+    " 不做任何处理，直接使用选中的文本
     let processed_text = selected_text
-    " 将续行符+空格+换行符合并为空格
-    let processed_text = substitute(processed_text, '[\\/]\s*\n\s*', ' ', 'g')
-    " 处理末尾的续行符
-    let processed_text = substitute(processed_text, '[\\/]\s*$', '', 'g')
-    " 压缩多个连续空格
-    let processed_text = substitute(processed_text, '\s\+', ' ', 'g')
-    " 去除首尾空格
-    let processed_text = substitute(processed_text, '^\s\+\|\s\+$', '', 'g')
     
     " 使用之前保存的结束行号（因为我们已经退出了可视模式）
     let last_line = end_line
@@ -136,14 +128,17 @@ function! ExecuteAndAppend(count)
 endfunction
 
 function! ExecuteCommandConcurrent(command_text, count)
-    " 创建临时文件来保存命令
-    let temp_file = tempname()
-    
+    " 创建临时 shell 脚本文件
+    let temp_script = tempname() . ".sh"
+
     try
-        " 将命令写入临时文件
-        call writefile([a:command_text], temp_file)
-        
-        " 使用 Python 的并发功能执行多次命令
+        " 将选中的文本原样写入临时脚本文件
+        call writefile(split(a:command_text, '\n', 1), temp_script)
+
+        " 给脚本添加执行权限
+        call system("chmod +x " . shellescape(temp_script))
+
+        " 使用 Python 并发执行脚本
         let python_script = tempname() . ".py"
         let python_code = [
             \ "#!/usr/bin/env python3",
@@ -151,28 +146,23 @@ function! ExecuteCommandConcurrent(command_text, count)
             \ "from concurrent.futures import ThreadPoolExecutor",
             \ "from datetime import datetime",
             \ "",
-            \ "with open('" . temp_file . "', 'r', encoding='utf-8', errors='ignore') as f:",
-            \ "    cmd = f.read().strip()",
-            \ ""
-            \ ] + GetPythonFixQuoteEscapeCode() + [
-            \ "# Source 环境配置 - 使用 bash_profile (zsh 也会加载)",
+            \ "script_path = '" . temp_script . "'",
+            \ "",
+            \ "# Source 环境配置",
             \ "bash_profile = os.path.expanduser('~/.bash_profile')",
             \ "if os.path.exists(bash_profile):",
             \ "    source_cmd = f'. {bash_profile} 2>/dev/null; '",
             \ "else:",
             \ "    source_cmd = ''",
             \ "",
-            \ "def run_command(cmd, index):",
+            \ "def run_command(index):",
             \ "    start_time = time.time()",
-            \ "    # 记录执行开始的时间点，格式：YYYY-MM-dd HH:mm:ss.sss",
             \ "    timestamp = datetime.fromtimestamp(start_time).strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]",
             \ "    try:",
-            \ "        # 在命令前添加 source 环境配置",
-            \ "        full_cmd = source_cmd + cmd",
-            \ "        result = subprocess.run(full_cmd, shell=True, executable='/bin/zsh',",
+            \ "        cmd = source_cmd + 'zsh ' + script_path",
+            \ "        result = subprocess.run(cmd, shell=True, executable='/bin/zsh',",
             \ "                              capture_output=True, text=True,",
             \ "                              stdin=subprocess.DEVNULL)",
-            \ "        # 先输出响应内容（stdout），再输出统计信息（stderr），用换行分隔",
             \ "        stdout = result.stdout.rstrip('\\n\\r')",
             \ "        stderr = result.stderr.rstrip('\\n\\r')",
             \ "        if stdout and stderr:",
@@ -189,66 +179,46 @@ function! ExecuteCommandConcurrent(command_text, count)
             \ "    except Exception as e:",
             \ "        return (index, timestamp, '【执行异常: ' + str(e) + '】')",
             \ "",
-            \ "cmd = fix_single_quote_escape(cmd)",
             \ "count = " . a:count,
             \ "",
             \ "# 使用线程池并发执行",
             \ "results = [None] * count",
             \ "with ThreadPoolExecutor(max_workers=count) as executor:",
-            \ "    futures = [executor.submit(run_command, cmd, i) for i in range(count)]",
-            \ "    # 按提交顺序收集结果，保持顺序（按索引顺序等待）",
+            \ "    futures = [executor.submit(run_command, i) for i in range(count)]",
             \ "    for i in range(len(futures)):",
             \ "        index, timestamp, output = futures[i].result()",
-            \ "        # 确保按提交顺序存储",
             \ "        results[i] = (timestamp, output)",
             \ "",
-            \ "# 输出结果，使用分隔符避免特殊字符问题",
+            \ "# 输出结果",
             \ "for i, (timestamp, output) in enumerate(results):",
             \ "    if i > 0:",
             \ "        sys.stdout.write('\\n---RESULT_SEPARATOR---\\n')",
-            \ "    # 输出格式：时间戳|结果",
             \ "    sys.stdout.write(timestamp + '|' + output)",
             \ "    if not output.endswith('\\n'):",
             \ "        sys.stdout.write('\\n')",
             \ ]
         call writefile(python_code, python_script)
-        
+
         " 执行 Python 脚本
         let result = system("python3 " . shellescape(python_script) . " 2>&1")
         let python_exit_code = v:shell_error
-        
+
         " 清理 Python 脚本
         if filereadable(python_script)
             call delete(python_script)
         endif
-        
+
         " 检查是否出错
         if python_exit_code != 0
             return [["", result]]
         endif
-        
+
         " 使用分隔符分割结果
-        " 格式：时间戳(YYYY-MM-dd HH:mm:ss.sss)|结果内容
         let raw_results = split(result, '\n---RESULT_SEPARATOR---\n', 1)
-        
-        " 如果分割失败，说明只有一个结果
-        if len(raw_results) == 1 && result !~ '---RESULT_SEPARATOR---'
-            " 尝试解析单个结果（时间戳格式：YYYY-MM-dd HH:mm:ss.sss）
-            if raw_results[0] =~ '^\d\{4}-\d\{2}-\d\{2} \d\{2}:\d\{2}:\d\{2}\.\d\{3}|'
-                let parts = split(raw_results[0], '|', 1)
-                if len(parts) >= 2
-                    let timestamp = parts[0]
-                    let content = join(parts[1:], '|')
-                    return [[timestamp, content]]
-                endif
-            endif
-            return [["", raw_results[0]]]
-        endif
-        
+
         " 解析每个结果
         let results = []
         for raw_result in raw_results
-            " 匹配时间戳格式：YYYY-MM-dd HH:mm:ss.sss
             if raw_result =~ '^\d\{4}-\d\{2}-\d\{2} \d\{2}:\d\{2}:\d\{2}\.\d\{3}|'
                 let parts = split(raw_result, '|', 1)
                 if len(parts) >= 2
@@ -262,12 +232,12 @@ function! ExecuteCommandConcurrent(command_text, count)
                 call add(results, ["", raw_result])
             endif
         endfor
-        
+
         return results
     finally
         " 清理临时文件
-        if filereadable(temp_file)
-            call delete(temp_file)
+        if filereadable(temp_script)
+            call delete(temp_script)
         endif
     endtry
 endfunction
@@ -315,72 +285,31 @@ function! FormatCommandOutput(stdout, stderr)
 endfunction
 
 function! ExecuteCommand(command_text)
-    " 创建临时文件来保存命令
-    let temp_file = tempname()
-    
+    " 创建临时 shell 脚本文件
+    let temp_script = tempname() . ".sh"
+
     try
-        " 将命令写入临时文件
-        call writefile([a:command_text], temp_file)
-        
-        " 使用 Python 修复单引号转义问题并执行命令
-        let python_script = tempname() . ".py"
-        let python_code = [
-            \ "#!/usr/bin/env python3",
-            \ "import subprocess, sys, os",
-            \ "with open('" . temp_file . "', 'r', encoding='utf-8', errors='ignore') as f:",
-            \ "    cmd = f.read().strip()",
-            \ ""
-            \ ] + GetPythonFixQuoteEscapeCode() + [
-            \ "cmd = fix_single_quote_escape(cmd)",
-            \ "",
-            \ "# Source 环境配置 - 使用 bash_profile (zsh 也会加载)",
-            \ "bash_profile = os.path.expanduser('~/.bash_profile')",
-            \ "if os.path.exists(bash_profile):",
-            \ "    cmd = f'. {bash_profile} 2>/dev/null; ' + cmd",
-            \ "",
-            \ "try:",
-            \ "    result = subprocess.run(cmd, shell=True, executable='/bin/zsh',",
-            \ "                          capture_output=True, text=True,",
-            \ "                          stdin=subprocess.DEVNULL)",
-            \ "    stdout = result.stdout.rstrip('\\n\\r')",
-            \ "    stderr = result.stderr.rstrip('\\n\\r')",
-            \ "    if stdout and stderr:",
-            \ "        output = stdout + '\\n' + stderr",
-            \ "    elif stdout:",
-            \ "        output = stdout",
-            \ "    elif stderr:",
-            \ "        output = stderr",
-            \ "    else:",
-            \ "        output = ''",
-            \ "    if result.returncode != 0:",
-            \ "        output = '【执行错误，退出码: ' + str(result.returncode) + '】\\n' + output",
-            \ "    sys.stdout.write(output)",
-            \ "    sys.exit(result.returncode)",
-            \ "except Exception as e:",
-            \ "    sys.stderr.write('【执行异常: ' + str(e) + '】')",
-            \ "    sys.exit(1)"
-            \ ]
-        call writefile(python_code, python_script)
-        
-        " 执行 Python 脚本
-        let result = system("python3 " . shellescape(python_script) . " 2>&1")
-        let python_exit_code = v:shell_error
-        
-        " 清理 Python 脚本
-        if filereadable(python_script)
-            call delete(python_script)
+        " 将选中的文本原样写入临时脚本文件
+        call writefile(split(a:command_text, '\n', 1), temp_script)
+
+        " 给脚本添加执行权限
+        call system("chmod +x " . shellescape(temp_script))
+
+        " 执行脚本，source bash_profile 以加载环境变量
+        let cmd = ". ~/.bash_profile 2>/dev/null; zsh " . shellescape(temp_script) . " 2>&1"
+        let result = system(cmd)
+        let exit_code = v:shell_error
+
+        " 如果执行失败，添加错误信息
+        if exit_code != 0
+            let result = "【执行错误，退出码: " . exit_code . "】\n" . result
         endif
-        
-        " 检查命令是否执行成功
-        if python_exit_code != 0 && result !~ '【执行错误'
-            let result = "【执行错误，退出码: " . python_exit_code . "】\n" . result
-        endif
-        
+
         return result
     finally
         " 清理临时文件
-        if filereadable(temp_file)
-            call delete(temp_file)
+        if filereadable(temp_script)
+            call delete(temp_script)
         endif
     endtry
 endfunction
