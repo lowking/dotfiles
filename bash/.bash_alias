@@ -166,6 +166,7 @@ alias vbc='vim $personal/backup.sh'
 alias vrs='vim $personal/restore.sh'
 alias vhc='vim ~/.ssh/config'
 alias vhosts='sudo vim /etc/hosts'
+alias iff="open -a Finder ./"
 #alias ls="gls -G --color=auto"
 alias ls="eza"
 alias ll='ls -al'
