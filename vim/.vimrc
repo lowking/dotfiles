@@ -39,7 +39,7 @@ autocmd BufReadPost *
 
 " 配置 <leader>] 快捷键：执行选中代码并将结果追加到下一行
 " 支持数字前缀，如 10<leader>] 会执行10次
-vnoremap <leader>] :<C-U>call ExecuteAndAppend(v:count1)<CR>
+vnoremap <leader>] <Cmd>call ExecuteAndAppend(v:count1)<CR>
 " 配置 <leader>c 快捷键：格式化选中的 curl 命令
 vnoremap <leader>c :<C-U>call FormatCurl()<CR>
 nnoremap <leader>c :<C-U>call FormatCurl()<CR>
@@ -54,21 +54,65 @@ inoremap <leader>[ <Esc>:call FormatJSON()<CR>
 " 并发执行指令
 " ============================================================================
 function! ExecuteAndAppend(count)
+    " 第一时间保存最后编辑位置标记（在任何操作之前）
+    let save_change_mark = getpos("'.")
+
+    " 先退出再重新进入可视模式，确保 '< 和 '> 标记被正确设置
+    execute "normal! \<Esc>gv"
+
     " count 默认为 1，如果用户输入了数字前缀则使用该数字
     let exec_count = a:count > 0 ? a:count : 1
-    
+
+    " 保存当前视图
+    let save_view = winsaveview()
+
     " 保存选中的范围（在退出可视模式前）
     let start_line = line("'<")
     let end_line = line("'>")
     let start_col = col("'<")
     let end_col = col("'>")
     let visual_mode = visualmode()
-    
+
     " 获取选中的文本（在退出可视模式前）
     let selected_text = GetVisualSelection()
 
     " 立即退出可视模式，避免重复触发
     execute "normal! \<Esc>"
+
+    " 立即恢复视图（在调用 system 之前）
+    call winrestview(save_view)
+    redraw
+
+    " 判断是否需要等待（检查第一行）
+    let is_waiting = 0
+    let scheduled_time = ''
+    let delay_ms = 0
+    let lines = split(selected_text, '\n', 1)
+    if len(lines) > 0
+        let first_line = lines[0]
+        if first_line =~# '^#.*>20\d\d-\d\d-\d\d\s\+\d\d:\d\d:\d\d'
+            " 提取时间
+            let time_match = matchstr(first_line, '>20\d\d-\d\d-\d\d\s\+\d\d:\d\d:\d\d')
+            let scheduled_time = substitute(time_match, '^>', '', '')
+
+            " 提取延迟毫秒数（可选）
+            let delay_match = matchstr(first_line, '>20\d\d-\d\d-\d\d\s\+\d\d:\d\d:\d\d\s\+\zs\d\+')
+            let delay_ms = delay_match != '' ? str2nr(delay_match) : 0
+
+            " 使用 Python 计算时间差：实际执行时间 = 调度时间 + 延迟毫秒
+            let py_code = 'from datetime import datetime; '
+            let py_code .= 'sched = datetime.strptime("' . scheduled_time . '", "%Y-%m-%d %H:%M:%S").timestamp() * 1000; '
+            let py_code .= 'curr = datetime.now().timestamp() * 1000; '
+            let py_code .= 'print(int(sched + ' . delay_ms . ' - curr))'
+            let result = system('python3 -c ' . shellescape(py_code))
+            let diff_ms = str2nr(result)
+
+            " 只要实际执行时间晚于当前时间就显示等待中
+            if diff_ms > 0
+                let is_waiting = 1
+            endif
+        endif
+    endif
 
     " 去除选中文本末尾的换行符
     let selected_text = substitute(selected_text, '\n$', '', '')
@@ -81,227 +125,173 @@ function! ExecuteAndAppend(count)
 
     " 不做任何处理，直接使用选中的文本
     let processed_text = selected_text
-    
+
     " 使用之前保存的结束行号（因为我们已经退出了可视模式）
     let last_line = end_line
 
-    " 每次执行都加一行空行, 方便vip选中命令
-    call append(last_line, "")
+    " 添加空行和动画
+    lockmarks call appendbufline('%', last_line, "")
     let last_line = last_line + 1
-    
-    " 如果执行次数大于1，使用并发执行；否则顺序执行
-    if exec_count > 1
-        " 并发执行所有命令
-        let results = ExecuteCommandConcurrent(processed_text, exec_count)
-        
-        " 按顺序追加所有结果
-        let i = 1
-        for result_item in results
-            " 解析结果：result_item 是 [timestamp, elapsed, content] 或直接是字符串
-            let timestamp = ""
-            let elapsed = ""
-            let result = ""
-            if type(result_item) == 3 && len(result_item) == 3
-                let timestamp = result_item[0]
-                let elapsed = result_item[1]
-                let result = result_item[2]
-            else
-                let result = result_item
-            endif
+    silent! undojoin
+    " 根据是否需要等待显示不同的初始文本
+    let status_text = is_waiting > 0 ? "等待中..." : (exec_count > 1 ? "并发执行中..." : "执行中...")
+    lockmarks call appendbufline('%', last_line, "⠋ " . status_text)
+    let spinner_line = last_line + 1
 
-            call AppendResult(last_line, result, timestamp, elapsed, i, exec_count)
-            " 更新 last_line：分隔行(1) + 结果行数 + (如果不是最后一个结果，还有分隔空行1)
-            let result_lines = GetResultLineCount(result)
-            let last_line = last_line + 1 + result_lines + (i < exec_count ? 1 : 0)
-            let i = i + 1
-        endfor
-    else
-        " 单次执行，直接调用
-        let result_data = ExecuteCommand(processed_text)
-        " result_data 是 [elapsed, content]
-        let elapsed = result_data[0]
-        let result = result_data[1]
-        call AppendResult(last_line, result, "", elapsed, 1, 1)
-    endif
+    " 初始化全局状态
+    let g:exec_state = {
+        \ 'spinner_line': spinner_line,
+        \ 'spinner_idx': 0,
+        \ 'start_time': reltime(),
+        \ 'result_start_line': spinner_line - 1,
+        \ 'exec_count': exec_count,
+        \ 'save_view': save_view,
+        \ 'save_change_mark': save_change_mark,
+        \ 'is_waiting': is_waiting
+        \ }
 
-    " 如果安装了 AnsiEsc 插件，使用它来渲染 ANSI 颜色
-    if exists(':AnsiEsc') == 2
-        " 保存当前光标位置
-        let save_cursor = getpos('.')
-        " 调用 AnsiEsc 渲染颜色
-        silent! AnsiEsc
-        " 恢复光标位置
-        call setpos('.', save_cursor)
-    endif
+    " 启动动画 timer
+    let g:exec_state.spinner_timer = timer_start(100, 'ExecSpinnerTick', {'repeat': -1})
 
-    " 恢复选中状态，方便再次执行
-    " 根据原始的可视模式类型恢复选择
-    if visual_mode ==# 'V'
-        " 行选择模式
-        execute "normal! " . start_line . "GV" . end_line . "G"
-    elseif visual_mode ==# 'v'
-        " 字符选择模式
-        execute "normal! " . start_line . "G" . start_col . "|v" . end_line . "G" . end_col . "|"
-    else
-        " 块选择模式
-        execute "normal! " . start_line . "G" . start_col . "|\<C-V>" . end_line . "G" . end_col . "|"
-    endif
+    " 统一使用并发执行（单次执行就是 count=1）
+    call ExecuteCommandConcurrent(processed_text, exec_count, scheduled_time, delay_ms)
 endfunction
 
-function! ExecuteCommandConcurrent(command_text, count)
+function! ExecuteCommandConcurrent(command_text, count, scheduled_time, delay_ms)
     " 创建临时 shell 脚本文件
     let temp_script = tempname() . ".sh"
 
-    try
-        " 将选中的文本原样写入临时脚本文件
-        call writefile(split(a:command_text, '\n', 1), temp_script)
+    " 将选中的文本原样写入临时脚本文件
+    call writefile(split(a:command_text, '\n', 1), temp_script)
 
-        " 给脚本添加执行权限
-        call system("chmod +x " . shellescape(temp_script))
+    " 给脚本添加执行权限
+    call system("chmod +x " . shellescape(temp_script))
 
-        " 使用 Python 并发执行脚本
-        let python_script = tempname() . ".py"
-        let python_code = [
-            \ "#!/usr/bin/env python3",
-            \ "import subprocess, sys, time, os, re",
-            \ "from concurrent.futures import ThreadPoolExecutor, as_completed",
-            \ "from datetime import datetime",
-            \ "",
-            \ "script_path = '" . temp_script . "'",
-            \ "",
-            \ "# Source zsh 配置（如不需要可注释此段以提升性能）",
-            \ "zshrc = os.path.expanduser('~/.zshrc')",
-            \ "if os.path.exists(zshrc):",
-            \ "    source_cmd = f'. {zshrc} 2>/dev/null; '",
-            \ "else:",
-            \ "    source_cmd = ''",
-            \ "",
-            \ "# 读取脚本第一行，检查是否有定时信息",
-            \ "scheduled_time = None",
-            \ "delay_ms = 0",
-            \ "with open(script_path, 'r', encoding='utf-8') as f:",
-            \ "    first_line = f.readline()",
-            \ "    # 检查是否是注释行",
-            \ "    if first_line.strip().startswith('#'):",
-            \ "        # 匹配 >时间 [延迟毫秒数] 的格式（毫秒数可选，默认0）",
-            \ "        match = re.search(r'>(\\d{4}-\\d{2}-\\d{2}\\s+\\d{2}:\\d{2}:\\d{2})(?:\\s+(\\d+))?', first_line)",
-            \ "        if match:",
-            \ "            time_str = match.group(1)",
-            \ "            delay_ms = int(match.group(2)) if match.group(2) else 0",
-            \ "            try:",
-            \ "                scheduled_time = datetime.strptime(time_str, '%Y-%m-%d %H:%M:%S')",
-            \ "            except ValueError:",
-            \ "                pass",
-            \ "",
-            \ "# 如果有定时信息且时间未到，使用死循环 + 10ms 休眠等待",
-            \ "if scheduled_time and datetime.now() < scheduled_time:",
-            \ "    import sys",
-            \ "    print(f'[定时执行] 等待到 {scheduled_time.strftime(\"%Y-%m-%d %H:%M:%S\")}...', file=sys.stderr)",
-            \ "    while True:",
-            \ "        now = datetime.now()",
-            \ "        if now >= scheduled_time:",
-            \ "            print(f'[定时执行] 时间到达，额外延迟 {delay_ms}ms 后开始执行', file=sys.stderr)",
-            \ "            # 到达时间后再休眠指定的毫秒数",
-            \ "            time.sleep(delay_ms / 1000.0)",
-            \ "            break",
-            \ "        # 休眠 10ms",
-            \ "        time.sleep(0.01)",
-            \ "",
-            \ "def run_command(index):",
-            \ "    # 记录开始时间（只计算脚本执行时间）",
-            \ "    start_time = time.time()",
-            \ "    timestamp = datetime.fromtimestamp(start_time).strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]",
-            \ "    try:",
-            \ "        # 直接执行脚本，不加载配置（如需配置，在脚本开头自行 source）",
-            \ "        result = subprocess.run(['zsh', script_path],",
-            \ "                              capture_output=True, text=True,",
-            \ "                              stdin=subprocess.DEVNULL)",
-            \ "        end_time = time.time()",
-            \ "        elapsed = f'{end_time - start_time:.3f}s'",
-            \ "        stdout = result.stdout.replace('\\r', '\\n')",
-            \ "        stderr = result.stderr.replace('\\r', '\\n')",
-            \ "        stdout = stdout.rstrip('\\n')",
-            \ "        stderr = stderr.rstrip('\\n')",
-            \ "        if stdout and stderr:",
-            \ "            output = stdout + '\\n' + stderr",
-            \ "        elif stdout:",
-            \ "            output = stdout",
-            \ "        elif stderr:",
-            \ "            output = stderr",
-            \ "        else:",
-            \ "            output = ''",
-            \ "        if result.returncode != 0:",
-            \ "            output = '【执行错误，退出码: ' + str(result.returncode) + '】\\n' + output",
-            \ "        return (index, timestamp, elapsed, output)",
-            \ "    except Exception as e:",
-            \ "        end_time = time.time()",
-            \ "        elapsed = f'{end_time - start_time:.3f}s'",
-            \ "        return (index, timestamp, elapsed, '【执行异常: ' + str(e) + '】')",
-            \ "",
-            \ "count = " . a:count,
-            \ "",
-            \ "# 使用线程池并发执行，结果按索引顺序存储",
-            \ "results = [None] * count",
-            \ "with ThreadPoolExecutor(max_workers=count) as executor:",
-            \ "    # 创建 future 到 index 的映射",
-            \ "    future_to_index = {executor.submit(run_command, i): i for i in range(count)}",
-            \ "    # 使用 as_completed 处理完成的任务，但结果按索引存储",
-            \ "    for future in as_completed(future_to_index):",
-            \ "        index, timestamp, elapsed, output = future.result()",
-            \ "        results[index] = (timestamp, elapsed, output)",
-            \ "",
-            \ "# 按索引顺序输出结果",
-            \ "for i, (timestamp, elapsed, output) in enumerate(results):",
-            \ "    if i > 0:",
-            \ "        sys.stdout.write('\\n---RESULT_SEPARATOR---\\n')",
-            \ "    sys.stdout.write(timestamp + '|' + elapsed + '|' + output)",
-            \ "    if not output.endswith('\\n'):",
-            \ "        sys.stdout.write('\\n')",
-            \ ]
-        call writefile(python_code, python_script)
+    " 使用 Python 并发执行脚本
+    let python_script = tempname() . ".py"
+    let python_code = [
+        \ "#!/usr/bin/env python3",
+        \ "import subprocess, sys, time, os",
+        \ "from concurrent.futures import ThreadPoolExecutor, as_completed",
+        \ "from datetime import datetime",
+        \ "",
+        \ "script_path = '" . temp_script . "'",
+        \ "",
+        \ "# Source zsh 配置（如不需要可注释此段以提升性能）",
+        \ "zshrc = os.path.expanduser('~/.zshrc')",
+        \ "if os.path.exists(zshrc):",
+        \ "    source_cmd = f'. {zshrc} 2>/dev/null; '",
+        \ "else:",
+        \ "    source_cmd = ''",
+        \ "",
+        \ "# 使用 VimScript 传入的调度信息（避免重复解析）",
+        \ "scheduled_time_str = '" . a:scheduled_time . "'",
+        \ "delay_ms = " . a:delay_ms,
+        \ "",
+        \ "# 解析调度时间",
+        \ "scheduled_time = None",
+        \ "if scheduled_time_str:",
+        \ "    try:",
+        \ "        scheduled_time = datetime.strptime(scheduled_time_str, '%Y-%m-%d %H:%M:%S')",
+        \ "    except ValueError:",
+        \ "        pass",
+        \ "",
+        \ "# 如果有定时信息且时间未到，使用死循环 + 10ms 休眠等待",
+        \ "if scheduled_time and datetime.now() < scheduled_time:",
+        \ "    while True:",
+        \ "        now = datetime.now()",
+        \ "        if now >= scheduled_time:",
+        \ "            # 到达时间后再休眠指定的毫秒数",
+        \ "            time.sleep(delay_ms / 1000.0)",
+        \ "            break",
+        \ "        # 休眠 10ms",
+        \ "        time.sleep(0.01)",
+        \ "    # 等待结束，发送信号",
+        \ "    sys.stderr.write('__WAITING_DONE__\\n')",
+        \ "    sys.stderr.flush()",
+        \ "",
+        \ "def run_command(index):",
+        \ "    # 记录开始时间（只计算脚本执行时间）",
+        \ "    start_time = time.time()",
+        \ "    timestamp = datetime.fromtimestamp(start_time).strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]",
+        \ "    try:",
+        \ "        # 直接执行脚本，不加载配置（如需配置，在脚本开头自行 source）",
+        \ "        result = subprocess.run(['zsh', script_path],",
+        \ "                              capture_output=True, text=True,",
+        \ "                              stdin=subprocess.DEVNULL)",
+        \ "        end_time = time.time()",
+        \ "        elapsed = f'{end_time - start_time:.3f}s'",
+        \ "        stdout = result.stdout.replace('\\r', '\\n')",
+        \ "        stderr = result.stderr.replace('\\r', '\\n')",
+        \ "        stdout = stdout.rstrip('\\n')",
+        \ "        stderr = stderr.rstrip('\\n')",
+        \ "        if stdout and stderr:",
+        \ "            output = stdout + '\\n' + stderr",
+        \ "        elif stdout:",
+        \ "            output = stdout",
+        \ "        elif stderr:",
+        \ "            output = stderr",
+        \ "        else:",
+        \ "            output = ''",
+        \ "        if result.returncode != 0:",
+        \ "            output = '【执行错误，退出码: ' + str(result.returncode) + '】\\n' + output",
+        \ "        return (index, timestamp, elapsed, output)",
+        \ "    except Exception as e:",
+        \ "        end_time = time.time()",
+        \ "        elapsed = f'{end_time - start_time:.3f}s'",
+        \ "        return (index, timestamp, elapsed, '【执行异常: ' + str(e) + '】')",
+        \ "",
+        \ "count = " . a:count,
+        \ "",
+        \ "# 单次执行：实时输出",
+        \ "if count == 1:",
+        \ "    proc = subprocess.Popen(['zsh', script_path], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, bufsize=1)",
+        \ "    for line in proc.stdout:",
+        \ "        print(line, end='', flush=True)",
+        \ "    proc.wait()",
+        \ "    sys.exit(proc.returncode)",
+        \ "",
+        \ "# 并发执行：收集输出后统一显示",
+        \ "results = [None] * count",
+        \ "with ThreadPoolExecutor(max_workers=count) as executor:",
+        \ "    # 创建 future 到 index 的映射",
+        \ "    future_to_index = {executor.submit(run_command, i): i for i in range(count)}",
+        \ "    # 使用 as_completed 处理完成的任务，但结果按索引存储",
+        \ "    for future in as_completed(future_to_index):",
+        \ "        index, timestamp, elapsed, output = future.result()",
+        \ "        results[index] = (timestamp, elapsed, output)",
+        \ "",
+        \ "# 按索引顺序输出结果",
+        \ "for i, (timestamp, elapsed, output) in enumerate(results):",
+        \ "    if i > 0:",
+        \ "        sys.stdout.write('\\n---RESULT_SEPARATOR---\\n')",
+        \ "    sys.stdout.write(timestamp + '|' + elapsed + '|' + output)",
+        \ "    if not output.endswith('\\n'):",
+        \ "        sys.stdout.write('\\n')",
+        \ ]
+    call writefile(python_code, python_script)
 
-        " 执行 Python 脚本
-        let result = system("python3 " . shellescape(python_script) . " 2>&1")
-        let python_exit_code = v:shell_error
+    " 保存到全局状态
+    let g:exec_state.temp_script = temp_script
+    let g:exec_state.python_script = python_script
 
-        " 清理 Python 脚本
-        if filereadable(python_script)
-            call delete(python_script)
-        endif
+    " 异步执行 Python 脚本
+    let job_opts = {
+        \ 'out_cb': 'ExecConcurrentOutCb',
+        \ 'err_cb': 'ExecConcurrentErrCb',
+        \ 'exit_cb': 'ExecConcurrentExitCb',
+        \ }
 
-        " 检查是否出错
-        if python_exit_code != 0
-            return [["", result]]
-        endif
+    " 单次执行使用行模式（实时输出），并发执行使用原始模式（收集输出）
+    if a:count == 1
+        let job_opts.out_mode = 'nl'
+        let job_opts.err_mode = 'nl'
+    else
+        let job_opts.out_mode = 'raw'
+        let job_opts.err_mode = 'raw'
+    endif
 
-        " 使用分隔符分割结果
-        let raw_results = split(result, '\n---RESULT_SEPARATOR---\n', 1)
-
-        " 解析每个结果
-        let results = []
-        for raw_result in raw_results
-            if raw_result =~ '^\d\{4}-\d\{2}-\d\{2} \d\{2}:\d\{2}:\d\{2}\.\d\{3}|'
-                let parts = split(raw_result, '|', 1)
-                if len(parts) >= 3
-                    let timestamp = parts[0]
-                    let elapsed = parts[1]
-                    let content = join(parts[2:], '|')
-                    call add(results, [timestamp, elapsed, content])
-                else
-                    call add(results, ["", "", raw_result])
-                endif
-            else
-                call add(results, ["", "", raw_result])
-            endif
-        endfor
-
-        return results
-    finally
-        " 清理临时文件
-        if filereadable(temp_script)
-            call delete(temp_script)
-        endif
-    endtry
+    let job = job_start(['python3', python_script], job_opts)
 endfunction
 
 " 获取 Python 代码模板（修复单引号转义）
@@ -346,10 +336,275 @@ function! FormatCommandOutput(stdout, stderr)
     endif
 endfunction
 
-function! ExecuteCommand(command_text)
+" 全局变量：跟踪实时输出
+let g:exec_state = {}
+let g:exec_spinner_frames = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏']
+
+" 旋转动画回调
+function! ExecSpinnerTick(timer)
+    if !has_key(g:exec_state, 'spinner_line')
+        call timer_stop(a:timer)
+        return
+    endif
+
+    let frame_idx = g:exec_state.spinner_idx % len(g:exec_spinner_frames)
+    let frame = g:exec_spinner_frames[frame_idx]
+    let g:exec_state.spinner_idx += 1
+
+    " 更新动画行
+    let elapsed = reltimestr(reltime(g:exec_state.start_time))
+    let elapsed_str = printf("%.1f", str2float(elapsed))
+    " 根据状态显示不同的文本
+    let exec_count = get(g:exec_state, 'exec_count', 1)
+    let status_text = get(g:exec_state, 'is_waiting', 0) ? "等待中..." : (exec_count > 1 ? "并发执行中..." : "执行中...")
+    let spinner_text = frame . " " . status_text . " (" . elapsed_str . "s)"
+    call setline(g:exec_state.spinner_line, spinner_text)
+    redraw
+endfunction
+
+" Job 输出回调
+function! ExecJobOutCb(channel, msg)
+    if has_key(g:exec_state, 'spinner_line')
+        " 合并到同一个 undo 块
+        silent! undojoin
+        " 在动画行之前插入输出（不删除动画行）
+        lockmarks call appendbufline('%', g:exec_state.spinner_line - 1, a:msg)
+        " 动画行位置向后移动一行
+        let g:exec_state.spinner_line += 1
+        redraw
+    endif
+endfunction
+
+" Job 错误输出回调（用于处理等待信号）
+function! ExecJobErrCb(channel, msg)
+    " 检查是否是等待结束信号
+    if a:msg == '__WAITING_DONE__'
+        " 更新状态和动画文本
+        if has_key(g:exec_state, 'is_waiting') && g:exec_state.is_waiting
+            let g:exec_state.is_waiting = 0
+            " 重置开始时间，从执行开始计算
+            let g:exec_state.start_time = reltime()
+        endif
+    else
+        " 其他错误输出，正常处理
+        call ExecJobOutCb(a:channel, a:msg)
+    endif
+endfunction
+
+" Job 完成回调
+function! ExecJobExitCb(job, exit_code)
+    " 先保存并清除 spinner_line，防止后续输出回调继续操作
+    let spinner_line = get(g:exec_state, 'spinner_line', 0)
+    if has_key(g:exec_state, 'spinner_line')
+        unlet g:exec_state.spinner_line
+    endif
+
+    " 停止动画
+    if has_key(g:exec_state, 'spinner_timer')
+        call timer_stop(g:exec_state.spinner_timer)
+    endif
+
+    " 计算总耗时并生成完成消息
+    let result_msg = "--- 执行完成 (退出码 " . a:exit_code . ") ---"
+    if has_key(g:exec_state, 'start_time')
+        let elapsed = reltimestr(reltime(g:exec_state.start_time))
+        let elapsed_str = printf("%.3f", str2float(elapsed))
+        let result_msg = "--- 执行完成 (耗时 " . elapsed_str . "s, 退出码 " . a:exit_code . ") ---"
+    endif
+
+    " 删除动画行并添加完成标记（合并到同一个 undo 块）
+    if spinner_line > 0
+        silent! undojoin
+        let line_pos = spinner_line - 1
+        call deletebufline('%', spinner_line)
+        silent! undojoin
+        lockmarks call appendbufline('%', line_pos, "")
+        silent! undojoin
+        lockmarks call appendbufline('%', line_pos + 1, result_msg)
+    endif
+
+    " 清理临时文件
+    if has_key(g:exec_state, 'temp_script') && filereadable(g:exec_state.temp_script)
+        call delete(g:exec_state.temp_script)
+    endif
+    if has_key(g:exec_state, 'wrapper_script') && filereadable(g:exec_state.wrapper_script)
+        call delete(g:exec_state.wrapper_script)
+    endif
+
+    " 恢复视图（光标位置和滚动位置）
+    if has_key(g:exec_state, 'save_view')
+        call winrestview(g:exec_state.save_view)
+    endif
+
+    " 恢复最后编辑位置标记 (使按 '. 能回到最后编辑位置)
+    " 注意：'. 是只读标记，不能直接用 setpos() 设置
+    " 解决方案：跳转到该位置并执行一个微小的编辑操作
+    let saved_change_mark = get(g:exec_state, 'save_change_mark', [])
+    if len(saved_change_mark) > 0 && saved_change_mark[1] > 0
+        " 保存当前位置
+        let current_pos = getpos('.')
+        " 跳转到最后编辑位置
+        call setpos('.', saved_change_mark)
+        " 用 r 替换当前字符为相同字符（会更新 '. 但不改变内容）
+        let char = getline('.')[col('.') - 1]
+        if char != ''
+            silent! execute "normal! r" . char
+        endif
+        " 恢复光标位置
+        call setpos('.', current_pos)
+    endif
+
+    " 清理状态
+    let g:exec_state = {}
+    redraw
+endfunction
+
+" 并发执行输出回调
+function! ExecConcurrentOutCb(channel, msg)
+    let exec_count = get(g:exec_state, 'exec_count', 1)
+
+    " 单次执行：实时追加输出到最后
+    if exec_count == 1
+        if has_key(g:exec_state, 'spinner_line')
+            " 合并到同一个 undo 块
+            silent! undojoin
+
+            " 获取当前输出的最后一行（初始时就是动画行）
+            if !has_key(g:exec_state, 'output_end_line')
+                let g:exec_state.output_end_line = g:exec_state.spinner_line
+            endif
+
+            " 在输出最后一行之后追加新内容
+            lockmarks call appendbufline('%', g:exec_state.output_end_line, a:msg)
+            " 更新输出最后一行位置
+            let g:exec_state.output_end_line += 1
+            redraw
+        endif
+    else
+        " 并发执行：收集输出到全局状态
+        if !has_key(g:exec_state, 'output')
+            let g:exec_state.output = ""
+        endif
+        let g:exec_state.output .= a:msg
+    endif
+endfunction
+
+" 并发执行错误输出回调（用于处理等待信号）
+function! ExecConcurrentErrCb(channel, msg)
+    " 检查是否是等待结束信号
+    if a:msg =~ '__WAITING_DONE__'
+        " 更新状态
+        if has_key(g:exec_state, 'is_waiting') && g:exec_state.is_waiting
+            let g:exec_state.is_waiting = 0
+            " 重置开始时间，从执行开始计算
+            let g:exec_state.start_time = reltime()
+        endif
+    else
+        " 其他错误输出，正常收集
+        call ExecConcurrentOutCb(a:channel, a:msg)
+    endif
+endfunction
+
+" 并发执行完成回调
+function! ExecConcurrentExitCb(job, exit_code)
+    " 停止动画
+    if has_key(g:exec_state, 'spinner_timer')
+        call timer_stop(g:exec_state.spinner_timer)
+    endif
+
+    " 删除动画行
+    let spinner_line = get(g:exec_state, 'spinner_line', 0)
+    if spinner_line > 0
+        silent! undojoin
+        call deletebufline('%', spinner_line)
+    endif
+
+    let exec_count = get(g:exec_state, 'exec_count', 1)
+
+    " 单次执行：输出已实时显示，只需删除动画行
+    if exec_count == 1
+        " 不需要解析和追加结果，输出已经实时显示了
+    else
+        " 并发执行：解析收集的输出并显示
+        " 获取执行结果
+        let output = get(g:exec_state, 'output', '')
+
+        " 解析结果
+        let raw_results = split(output, '\n---RESULT_SEPARATOR---\n', 1)
+        let results = []
+        for raw_result in raw_results
+            if raw_result =~ '^\d\{4}-\d\{2}-\d\{2} \d\{2}:\d\{2}:\d\{2}\.\d\{3}|'
+                let parts = split(raw_result, '|', 1)
+                if len(parts) >= 3
+                    let timestamp = parts[0]
+                    let elapsed = parts[1]
+                    let content = join(parts[2:], '|')
+                    call add(results, [timestamp, elapsed, content])
+                else
+                    call add(results, ["", "", raw_result])
+                endif
+            else
+                call add(results, ["", "", raw_result])
+            endif
+        endfor
+
+        " 获取参数
+        let last_line = get(g:exec_state, 'result_start_line', spinner_line - 1)
+
+        " 按顺序追加所有结果（所有修改合并到同一个 undo 块）
+        let i = 1
+        for result_item in results
+            let timestamp = result_item[0]
+            let elapsed = result_item[1]
+            let result = result_item[2]
+
+            silent! undojoin
+            call AppendResult(last_line, result, timestamp, elapsed, i, exec_count)
+            let result_lines = GetResultLineCount(result)
+            let last_line = last_line + 1 + result_lines + (i < exec_count ? 1 : 0)
+            let i = i + 1
+        endfor
+    endif
+
+    " 清理临时文件
+    if has_key(g:exec_state, 'temp_script') && filereadable(g:exec_state.temp_script)
+        call delete(g:exec_state.temp_script)
+    endif
+    if has_key(g:exec_state, 'python_script') && filereadable(g:exec_state.python_script)
+        call delete(g:exec_state.python_script)
+    endif
+
+    " 恢复视图（光标位置和滚动位置）
+    if has_key(g:exec_state, 'save_view')
+        call winrestview(g:exec_state.save_view)
+    endif
+
+    " 恢复最后编辑位置标记 (使按 '. 能回到最后编辑位置)
+    " 注意：'. 是只读标记，不能直接用 setpos() 设置
+    " 解决方案：跳转到该位置并执行一个微小的编辑操作
+    let saved_change_mark = get(g:exec_state, 'save_change_mark', [])
+    if len(saved_change_mark) > 0 && saved_change_mark[1] > 0
+        " 保存当前位置
+        let current_pos = getpos('.')
+        " 跳转到最后编辑位置
+        call setpos('.', saved_change_mark)
+        " 用 r 替换当前字符为相同字符（会更新 '. 但不改变内容）
+        let char = getline('.')[col('.') - 1]
+        if char != ''
+            silent! execute "normal! r" . char
+        endif
+        " 恢复光标位置
+        call setpos('.', current_pos)
+    endif
+
+    " 清理状态
+    let g:exec_state = {}
+    redraw
+endfunction
+
+function! ExecuteCommand(command_text, save_view, save_change_mark)
     " 创建临时 shell 脚本文件
     let temp_script = tempname() . ".sh"
-    let temp_stderr = tempname() . ".stderr"
 
     try
         " 将选中的文本原样写入临时脚本文件
@@ -358,11 +613,54 @@ function! ExecuteCommand(command_text)
         " 给脚本添加执行权限
         call system("chmod +x " . shellescape(temp_script))
 
-        " 检查第一行是否有定时信息，如果有则等待
-        let python_check = tempname() . ".py"
-        let check_code = [
+        " 检查第一行是否有定时信息，并判断是否需要等待
+        let first_line_list = readfile(temp_script, '', 1)
+        let first_line = len(first_line_list) > 0 ? first_line_list[0] : ''
+        let is_waiting = 0
+        if first_line =~# '^#.*>20\d\d-\d\d-\d\d\s\+\d\d:\d\d:\d\d'
+            " 提取时间字符串
+            let time_match = matchstr(first_line, '>20\d\d-\d\d-\d\d\s\+\d\d:\d\d:\d\d')
+            if time_match != ''
+                let scheduled_time = substitute(time_match, '^>', '', '')
+                " 获取当前时间并比较
+                let current_time = strftime('%Y-%m-%d %H:%M:%S')
+                if scheduled_time > current_time
+                    let is_waiting = 1
+                endif
+            endif
+        endif
+
+        " 获取当前选中区域的结束行
+        let last_line = line("'>")
+
+        " 添加空行和动画指示行（合并到同一个 undo 块）
+        lockmarks call appendbufline('%', last_line, "")
+        let last_line = last_line + 1
+        silent! undojoin
+        " 根据是否真的需要等待显示不同的初始文本
+        let initial_text = is_waiting ? "⠋ 等待中..." : "⠋ 执行中..."
+        lockmarks call appendbufline('%', last_line, initial_text)
+        let spinner_line = last_line + 1
+
+        " 初始化全局状态
+        let g:exec_state = {
+            \ 'temp_script': temp_script,
+            \ 'spinner_line': spinner_line,
+            \ 'spinner_idx': 0,
+            \ 'start_time': reltime(),
+            \ 'save_view': a:save_view,
+            \ 'save_change_mark': a:save_change_mark,
+            \ 'is_waiting': is_waiting
+            \ }
+
+        " 启动动画 timer（每100ms更新一次）
+        let g:exec_state.spinner_timer = timer_start(100, 'ExecSpinnerTick', {'repeat': -1})
+
+        " 创建包装脚本，先等待再执行
+        let wrapper_script = tempname() . ".py"
+        let wrapper_code = [
             \ "#!/usr/bin/env python3",
-            \ "import re, time",
+            \ "import subprocess, sys, time, re",
             \ "from datetime import datetime",
             \ "",
             \ "script_path = '" . temp_script . "'",
@@ -372,11 +670,8 @@ function! ExecuteCommand(command_text)
             \ "delay_ms = 0",
             \ "with open(script_path, 'r', encoding='utf-8') as f:",
             \ "    first_line = f.readline()",
-            \ "    # 检查是否是注释行",
             \ "    if first_line.strip().startswith('#'):",
-            \ "        # 匹配 >时间 [延迟毫秒数] 的格式（毫秒数可选，默认0）",
-            \ "        pattern = r'>(\\d{4}-\\d{2}-\\d{2}\\s+\\d{2}:\\d{2}:\\d{2})(?:\\s+(\\d+))?'",
-            \ "        match = re.search(pattern, first_line)",
+            \ "        match = re.search(r'>(\\d{4}-\\d{2}-\\d{2}\\s+\\d{2}:\\d{2}:\\d{2})(?:\\s+(\\d+))?', first_line)",
             \ "        if match:",
             \ "            time_str = match.group(1)",
             \ "            delay_ms = int(match.group(2)) if match.group(2) else 0",
@@ -385,75 +680,46 @@ function! ExecuteCommand(command_text)
             \ "            except ValueError:",
             \ "                pass",
             \ "",
-            \ "# 如果有定时信息且时间未到，使用死循环 + 10ms 休眠等待",
+            \ "# 如果有定时信息且时间未到，等待",
             \ "if scheduled_time and datetime.now() < scheduled_time:",
             \ "    while True:",
             \ "        now = datetime.now()",
             \ "        if now >= scheduled_time:",
-            \ "            # 到达时间后再休眠指定的毫秒数",
             \ "            time.sleep(delay_ms / 1000.0)",
             \ "            break",
-            \ "        # 休眠 10ms",
             \ "        time.sleep(0.01)",
+            \ "    # 等待结束，发送信号",
+            \ "    print('__WAITING_DONE__', file=sys.stderr, flush=True)",
+            \ "",
+            \ "# 执行脚本并实时输出",
+            \ "proc = subprocess.Popen(['zsh', script_path], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, bufsize=1)",
+            \ "for line in proc.stdout:",
+            \ "    print(line, end='', flush=True)",
+            \ "proc.wait()",
+            \ "sys.exit(proc.returncode)",
             \ ]
-        call writefile(check_code, python_check)
-        call system("python3 " . shellescape(python_check))
-        if filereadable(python_check)
-            call delete(python_check)
-        endif
+        call writefile(wrapper_code, wrapper_script)
+        let g:exec_state.wrapper_script = wrapper_script
 
-        " 记录开始时间（只计算脚本执行时间）
-        let start_time = reltime()
+        " 启动异步执行
+        let job_opts = {
+            \ 'out_cb': 'ExecJobOutCb',
+            \ 'err_cb': 'ExecJobErrCb',
+            \ 'exit_cb': 'ExecJobExitCb',
+            \ 'out_mode': 'nl',
+            \ 'err_mode': 'nl'
+            \ }
 
-        " 执行脚本，分别捕获 stdout 和 stderr
-        " 不自动加载配置，如果需要 zsh 配置（如函数、别名），在脚本开头添加：
-        " source ~/.zshrc
-        let cmd = "zsh " . shellescape(temp_script) . " 2>" . shellescape(temp_stderr)
-        let stdout = system(cmd)
-        let exit_code = v:shell_error
+        let job = job_start(['python3', wrapper_script], job_opts)
 
-        " 计算耗时
-        let elapsed_time = reltimestr(reltime(start_time))
-        let elapsed = printf("%.3fs", str2float(elapsed_time))
-
-        " 读取 stderr
-        let stderr = ""
-        if filereadable(temp_stderr)
-            let stderr = join(readfile(temp_stderr, 'b'), "\n")
-        endif
-
-        " 将 \r 替换成 \n（curl 进度信息使用 \r 更新同一行）
-        let stdout = substitute(stdout, '\r', '\n', 'g')
-        let stderr = substitute(stderr, '\r', '\n', 'g')
-
-        " 去除末尾的换行符
-        let stdout = substitute(stdout, '\n\+$', '', '')
-        let stderr = substitute(stderr, '\n\+$', '', '')
-
-        " 按照和并发执行相同的顺序组合 stdout 和 stderr
-        let result = ""
-        if stdout != "" && stderr != ""
-            let result = stdout . "\n" . stderr
-        elseif stdout != ""
-            let result = stdout
-        elseif stderr != ""
-            let result = stderr
-        endif
-
-        " 如果执行失败，添加错误信息
-        if exit_code != 0
-            let result = "【执行错误，退出码: " . exit_code . "】\n" . result
-        endif
-
-        return [elapsed, result]
-    finally
-        " 清理临时文件
+        " 不返回任何值，因为是异步执行
+        return ['0.000s', '']
+    catch
+        " 如果出错，清理临时文件
         if filereadable(temp_script)
             call delete(temp_script)
         endif
-        if filereadable(temp_stderr)
-            call delete(temp_stderr)
-        endif
+        return ['0.000s', '【启动执行失败: ' . v:exception . '】']
     endtry
 endfunction
 
@@ -467,24 +733,24 @@ function! AppendResult(last_line, result, timestamp, elapsed, index, total)
 
     " 添加分隔行标识每次执行，包含执行时间点和耗时
     if a:timestamp != "" && a:elapsed != ""
-        call append(a:last_line, "--- 执行 #" . a:index . " (" . a:timestamp . ", 耗时 " . a:elapsed . ") ---")
+        lockmarks call appendbufline('%', a:last_line, "--- 执行 #" . a:index . " (" . a:timestamp . ", 耗时 " . a:elapsed . ") ---")
     elseif a:elapsed != ""
-        call append(a:last_line, "--- 执行 #" . a:index . " (耗时 " . a:elapsed . ") ---")
+        lockmarks call appendbufline('%', a:last_line, "--- 执行 #" . a:index . " (耗时 " . a:elapsed . ") ---")
     else
-        call append(a:last_line, "--- 执行 #" . a:index . " ---")
+        lockmarks call appendbufline('%', a:last_line, "--- 执行 #" . a:index . " ---")
     endif
     let current_line = a:last_line + 1
 
     " 如果结果为空，插入空行；否则插入所有结果行
     if len(lines) == 0
-        call append(current_line, "")
+        lockmarks call appendbufline('%', current_line, "")
     else
-        call append(current_line, lines)
+        lockmarks call appendbufline('%', current_line, lines)
     endif
 
     " 在结果之间添加空行分隔（最后一个结果不加）
     if a:index <= a:total
-        call append(current_line + len(lines), "")
+        lockmarks call appendbufline('%', current_line + len(lines), "")
     endif
 endfunction
 
@@ -658,14 +924,14 @@ function! FormatJSON()
             " 删除选中的行
             if start_line == end_line
                 " 单行：删除整行并插入格式化后的内容
-                execute start_line . "delete"
-                call append(start_line - 1, formatted)
+                lockmarks execute start_line . "delete"
+                lockmarks call appendbufline('%', start_line - 1, formatted)
                 let new_start_line = start_line
                 let new_end_line = start_line
             else
                 " 多行：删除所有行，在第一行位置插入格式化后的内容
-                execute start_line . "," . end_line . "delete"
-                call append(start_line - 1, formatted)
+                lockmarks execute start_line . "," . end_line . "delete"
+                lockmarks call appendbufline('%', start_line - 1, formatted)
                 let new_start_line = start_line
                 let new_end_line = start_line
             endif
@@ -715,11 +981,11 @@ function! FormatJSON()
             let lines = split(formatted, '\n', 1)
             if len(lines) == 1
                 " 单行：直接替换
-                call setline(current_line, lines[0])
+                lockmarks call setline(current_line, lines[0])
             else
                 " 多行：删除当前行，插入多行
-                execute current_line . "delete"
-                call append(current_line - 1, lines)
+                lockmarks execute current_line . "delete"
+                lockmarks call appendbufline('%', current_line - 1, lines)
             endif
         " 如果格式化失败，错误信息已经在 FormatJSONWithJQ 中显示
         endif
@@ -863,9 +1129,9 @@ function! FormatCurl()
     endif
 
     " 替换选中的文本
-    execute start_line . "," . end_line . "delete"
+    lockmarks execute start_line . "," . end_line . "delete"
     let formatted_lines = split(formatted, '\n', 1)
-    call append(start_line - 1, formatted_lines)
+    lockmarks call appendbufline('%', start_line - 1, formatted_lines)
 
     " 恢复光标位置
     call setpos(".", save_cursor)
