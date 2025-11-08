@@ -163,7 +163,7 @@ function! ExecuteCommandConcurrent(command_text, count)
         let python_script = tempname() . ".py"
         let python_code = [
             \ "#!/usr/bin/env python3",
-            \ "import subprocess, sys, time, os",
+            \ "import subprocess, sys, time, os, re",
             \ "from concurrent.futures import ThreadPoolExecutor, as_completed",
             \ "from datetime import datetime",
             \ "",
@@ -175,6 +175,37 @@ function! ExecuteCommandConcurrent(command_text, count)
             \ "    source_cmd = f'. {zshrc} 2>/dev/null; '",
             \ "else:",
             \ "    source_cmd = ''",
+            \ "",
+            \ "# 读取脚本第一行，检查是否有定时信息",
+            \ "scheduled_time = None",
+            \ "delay_ms = 0",
+            \ "with open(script_path, 'r', encoding='utf-8') as f:",
+            \ "    first_line = f.readline()",
+            \ "    # 检查是否是注释行",
+            \ "    if first_line.strip().startswith('#'):",
+            \ "        # 匹配 >时间 [延迟毫秒数] 的格式（毫秒数可选，默认0）",
+            \ "        match = re.search(r'>(\\d{4}-\\d{2}-\\d{2}\\s+\\d{2}:\\d{2}:\\d{2})(?:\\s+(\\d+))?', first_line)",
+            \ "        if match:",
+            \ "            time_str = match.group(1)",
+            \ "            delay_ms = int(match.group(2)) if match.group(2) else 0",
+            \ "            try:",
+            \ "                scheduled_time = datetime.strptime(time_str, '%Y-%m-%d %H:%M:%S')",
+            \ "            except ValueError:",
+            \ "                pass",
+            \ "",
+            \ "# 如果有定时信息且时间未到，使用死循环 + 10ms 休眠等待",
+            \ "if scheduled_time and datetime.now() < scheduled_time:",
+            \ "    import sys",
+            \ "    print(f'[定时执行] 等待到 {scheduled_time.strftime(\"%Y-%m-%d %H:%M:%S\")}...', file=sys.stderr)",
+            \ "    while True:",
+            \ "        now = datetime.now()",
+            \ "        if now >= scheduled_time:",
+            \ "            print(f'[定时执行] 时间到达，额外延迟 {delay_ms}ms 后开始执行', file=sys.stderr)",
+            \ "            # 到达时间后再休眠指定的毫秒数",
+            \ "            time.sleep(delay_ms / 1000.0)",
+            \ "            break",
+            \ "        # 休眠 10ms",
+            \ "        time.sleep(0.01)",
             \ "",
             \ "def run_command(index):",
             \ "    # 记录开始时间（只计算脚本执行时间）",
@@ -326,6 +357,50 @@ function! ExecuteCommand(command_text)
 
         " 给脚本添加执行权限
         call system("chmod +x " . shellescape(temp_script))
+
+        " 检查第一行是否有定时信息，如果有则等待
+        let python_check = tempname() . ".py"
+        let check_code = [
+            \ "#!/usr/bin/env python3",
+            \ "import re, time",
+            \ "from datetime import datetime",
+            \ "",
+            \ "script_path = '" . temp_script . "'",
+            \ "",
+            \ "# 读取脚本第一行，检查是否有定时信息",
+            \ "scheduled_time = None",
+            \ "delay_ms = 0",
+            \ "with open(script_path, 'r', encoding='utf-8') as f:",
+            \ "    first_line = f.readline()",
+            \ "    # 检查是否是注释行",
+            \ "    if first_line.strip().startswith('#'):",
+            \ "        # 匹配 >时间 [延迟毫秒数] 的格式（毫秒数可选，默认0）",
+            \ "        pattern = r'>(\\d{4}-\\d{2}-\\d{2}\\s+\\d{2}:\\d{2}:\\d{2})(?:\\s+(\\d+))?'",
+            \ "        match = re.search(pattern, first_line)",
+            \ "        if match:",
+            \ "            time_str = match.group(1)",
+            \ "            delay_ms = int(match.group(2)) if match.group(2) else 0",
+            \ "            try:",
+            \ "                scheduled_time = datetime.strptime(time_str, '%Y-%m-%d %H:%M:%S')",
+            \ "            except ValueError:",
+            \ "                pass",
+            \ "",
+            \ "# 如果有定时信息且时间未到，使用死循环 + 10ms 休眠等待",
+            \ "if scheduled_time and datetime.now() < scheduled_time:",
+            \ "    while True:",
+            \ "        now = datetime.now()",
+            \ "        if now >= scheduled_time:",
+            \ "            # 到达时间后再休眠指定的毫秒数",
+            \ "            time.sleep(delay_ms / 1000.0)",
+            \ "            break",
+            \ "        # 休眠 10ms",
+            \ "        time.sleep(0.01)",
+            \ ]
+        call writefile(check_code, python_check)
+        call system("python3 " . shellescape(python_check))
+        if filereadable(python_check)
+            call delete(python_check)
+        endif
 
         " 记录开始时间（只计算脚本执行时间）
         let start_time = reltime()

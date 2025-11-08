@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
+# 测试定时执行 >2025-11-08 10:54:17 990
+gdate '+%Y-%m-%d %H:%M:%S.%3N'
+
 # 从剪辑版复制文本存入cookie文件, 然后执行斗鱼自动送礼
 douyuCookieFile=/Users/lowking/douyu-gift/config/cookie.txt
 echo $(pbpaste) > "$douyuCookieFile"
