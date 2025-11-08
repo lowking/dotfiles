@@ -5,5 +5,8 @@ douyuCookieFile=/Users/lowking/douyu-gift/config/cookie.txt
 echo $(pbpaste) > "$douyuCookieFile"
 t douyu
 
+# noip renew
 source ~/.zshrc
-eza
+ssh docker "
+docker run --rm --env NO_IP_USERNAME=$NO_IP_USERNAME --env NO_IP_PASSWORD=$NO_IP_PASSWORD --env NO_IP_TOTP_KEY=$NO_IP_TOTP_KEY simaofsilva/noip-renewer:latest
+"
