@@ -5,11 +5,41 @@ gdate '+%Y-%m-%d %H:%M:%S.%3N' && sleep 0.5 && gdate '+%Y-%m-%d %H:%M:%S.%3N'
 
 # 从剪辑版复制文本存入cookie文件, 然后执行斗鱼自动送礼
 douyuCookieFile=/Users/lowking/douyu-gift/config/cookie.txt
-echo $(pbpaste) > "$douyuCookieFile"
-t douyu
+pbContent=$(pbpaste)
+dyDid="dy_did"
+if [[ $pbContent =~ $dyDid ]]; then
+    echo $pbContent > "$douyuCookieFile"
+    t douyu
+else
+    echo "⚠️ 错误的cookie, 请确认"
+fi
 
 # noip renew
 source ~/.zshrc
 ssh docker "
 docker run --rm --env NO_IP_USERNAME=$NO_IP_USERNAME --env NO_IP_PASSWORD=$NO_IP_PASSWORD --env NO_IP_TOTP_KEY=$NO_IP_TOTP_KEY simaofsilva/noip-renewer:latest
+"
+
+# plex hd list
+ssh plex "
+ls -alh /mnt/media/hd
+"
+
+dir=/home/ispy/media/video/c6cn/grabs
+ssh lksony "
+ps -ef|grep -i fswatch |grep -Ev \"grep|log\"
+echo $pwdStr |sudo -S -u ispy bash << EOSU
+whoami
+cd $dir
+ls $dir -t |grep jpg |grep -v test |head -n 1 |xargs -i echo \"cp $dir/{} $dir/test.jpg && sleep 4 && rm $dir/test.jpg\" |bash
+tail -n 3 ../../fswatch.log
+EOSU
+"
+
+# ispy重启fswatch
+ssh lksony "
+echo $pwdStr|sudo -S bash << EOSU
+whoami
+systemctl restart fs
+EOSU
 "
