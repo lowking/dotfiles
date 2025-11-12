@@ -167,6 +167,16 @@ alias vrs='vim $personal/restore.sh'
 alias vhc='vim ~/.ssh/config'
 alias vhosts='sudo vim /etc/hosts'
 alias iff="open -a Finder ./"
+function fii() {
+    local finder_path
+    finder_path=$(osascript -e 'tell application "Finder" to if (count of Finder windows) > 0 then get POSIX path of (target of front Finder window as text)')
+    if [ -n "$finder_path" ]; then
+        cd "$finder_path" && echo "切换到: $finder_path"
+    else
+        echo "错误: 没有打开的 Finder 窗口"
+        return 1
+    fi
+}
 #alias ls="gls -G --color=auto"
 alias ls="eza"
 alias ll='ls -al'
