@@ -44,12 +44,20 @@ function _clap_dynamic_completer_jj() {
     local _CLAP_COMPLETE_INDEX=$((CURRENT - 1))
     local _CLAP_IFS=$'\n'
 
+    # 如果当前词是 -- 开头的参数，为了获取所有候选项进行模糊匹配，
+    # 我们需要把当前词替换为 -- 来获取完整列表
+    local modified_words=("${words[@]}")
+    local current_word="${words[CURRENT]}"
+    if [[ "$current_word" == --* ]]; then
+        modified_words[CURRENT]="--"
+    fi
+
     local completions
     completions=("${(@f)$( \
         _CLAP_IFS="$_CLAP_IFS" \
         _CLAP_COMPLETE_INDEX="$_CLAP_COMPLETE_INDEX" \
         COMPLETE="zsh" \
-        /usr/local/Cellar/jj/0.34.0/bin/jj -- "${words[@]}" 2>/dev/null \
+        /usr/local/Cellar/jj/0.34.0/bin/jj -- "${modified_words[@]}" 2>/dev/null \
     )}")
 
     if (( ${#completions[@]} )); then
@@ -61,9 +69,29 @@ function _clap_dynamic_completer_jj() {
         done
 
         if (( ${#params[@]} )); then
-            log "参数补全"
-            compadd -Q -S ' ' -- "${params[@]}"
-            return
+            # 如果当前输入是 -- 开头，进行模糊过滤
+            if [[ "$current_word" == --* ]]; then
+                local filtered=()
+                local search_term="${current_word#--}"  # 去掉 -- 前缀
+                for param in "${params[@]}"; do
+                    local param_without_prefix="${param#--}"
+                    # 子串匹配（忽略大小写）
+                    if [[ "${param_without_prefix:l}" == *"${search_term:l}"* ]]; then
+                        filtered+=("$param")
+                    fi
+                done
+                if (( ${#filtered[@]} )); then
+                    log "参数补全(模糊过滤) filtered=${filtered[*]}"
+                    compstate[insert]=menu
+                    PREFIX=""
+                    compadd -U -Q -S ' ' -- "${filtered[@]}"
+                    return
+                fi
+            else
+                log "参数补全"
+                compadd -Q -S ' ' -- "${params[@]}"
+                return
+            fi
         fi
     fi
 
@@ -83,6 +111,18 @@ function _js() {
         # 其他情况使用 jj 的补全逻辑
         # 将 words 数组的第一个元素从 js 改为 jj b s，然后调用 jj 的补全
         local modified_words=("jj" "b" "s" "${words[@]:2}")
+
+        # 如果当前词是 -- 开头的参数，替换为 -- 来获取完整列表
+        local current_word="${words[CURRENT]}"
+        if [[ "$current_word" == --* ]]; then
+            # js arg1 arg2 -> jj b s arg2 ...
+            # words[3] -> modified_words[4], 所以是 CURRENT+1
+            local idx=$((CURRENT + 1))
+            if (( idx <= ${#modified_words[@]} )); then
+                modified_words[idx]="--"
+            fi
+        fi
+
         local _CLAP_COMPLETE_INDEX=$((CURRENT + 1))  # 因为增加了 b s 两个词
         local _CLAP_IFS=$'\n'
 
@@ -103,8 +143,26 @@ function _js() {
             done
 
             if (( ${#params[@]} )); then
-                compadd -Q -S ' ' -- "${params[@]}"
-                return
+                # 如果当前输入是 -- 开头，进行模糊过滤
+                if [[ "$current_word" == --* ]]; then
+                    local filtered=()
+                    local search_term="${current_word#--}"
+                    for param in "${params[@]}"; do
+                        local param_without_prefix="${param#--}"
+                        if [[ "${param_without_prefix:l}" == *"${search_term:l}"* ]]; then
+                            filtered+=("$param")
+                        fi
+                    done
+                    if (( ${#filtered[@]} )); then
+                        compstate[insert]=menu
+                        PREFIX=""
+                        compadd -U -Q -S ' ' -- "${filtered[@]}"
+                        return
+                    fi
+                else
+                    compadd -Q -S ' ' -- "${params[@]}"
+                    return
+                fi
             fi
         fi
 
@@ -150,11 +208,23 @@ function _jj_custom_complete() {
     # 构建 modified_words：将 je/jd 转换为 jj edit/desc
     local modified_words=("jj" "$cmd" "${words[@]:1}")
 
+    # 如果当前词是 -- 开头的参数，为了获取所有候选项进行模糊匹配，
+    # 我们需要把当前词替换为 -- 来获取完整列表
+    local current_word="${words[CURRENT]}"
+    local use_fuzzy_match=0
+    if [[ "$current_word" == --* ]] && (( CURRENT > 2 )); then
+        # 保存原始的当前词用于后续匹配
+        use_fuzzy_match=1
+        # 修改 modified_words，把当前位置的词替换为 --
+        # modified_words 比 words 多了一个元素(cmd)，所以索引要 +1
+        modified_words[CURRENT+1]="--"
+    fi
+
     # _CLAP_COMPLETE_INDEX 需要 +1，因为在 words 中位置 1 是 "je/jd"，但在 modified_words 中位置 1 是 "jj"，位置 2 是 "edit/desc"
     local _CLAP_COMPLETE_INDEX=$((CURRENT))
     local _CLAP_IFS=$'\n'
 
-    log "_jj_custom_complete cmd=$cmd, CURRENT=$CURRENT, words='${words[*]}', modified_words='${modified_words[*]}'"
+    log "_jj_custom_complete cmd=$cmd, CURRENT=$CURRENT, words='${words[*]}', modified_words='${modified_words[*]}', use_fuzzy_match=$use_fuzzy_match"
 
     local completions
     completions=("${(@f)$( \
@@ -189,9 +259,30 @@ function _jj_custom_complete() {
                     params+=("${item%%:*}")
                 fi
             done
-            log "后续参数补全 params=${params[*]}"
+            log "后续参数补全 params=${params[*]}, current_word='$current_word'"
             if (( ${#params[@]} )); then
-                compadd -S ' ' -- "${params[@]}"
+                # 如果当前输入是 -- 开头，进行模糊过滤
+                if [[ "$current_word" == --* ]]; then
+                    local filtered=()
+                    local search_term="${current_word#--}"
+                    log "开始模糊过滤, search_term='$search_term'"
+                    for param in "${params[@]}"; do
+                        local param_without_prefix="${param#--}"
+                        if [[ "${param_without_prefix:l}" == *"${search_term:l}"* ]]; then
+                            filtered+=("$param")
+                            log "匹配成功: $param (param_without_prefix=$param_without_prefix)"
+                        fi
+                    done
+                    log "过滤结果 filtered count=${#filtered[@]}, filtered=${filtered[*]}"
+                    if (( ${#filtered[@]} )); then
+                        # 清空 PREFIX，让 zsh 替换整个当前词
+                        compstate[insert]=menu
+                        PREFIX=""
+                        compadd -U -S ' ' -- "${filtered[@]}"
+                    fi
+                else
+                    compadd -S ' ' -- "${params[@]}"
+                fi
             fi
             return
         fi
@@ -220,8 +311,18 @@ function _jgp() {
 
     # 构建 modified_words 数组
     local modified_words=("jj" "git" "push")
-    if (( CURRENT > 2 )); then
+    if (( CURRENT >= 2 )); then
         modified_words+=("${words[@]:2}")
+    fi
+
+    # 如果当前词是 -- 开头的参数，替换为 -- 来获取完整列表
+    local current_word="${words[CURRENT]}"
+    if [[ "$current_word" == --* ]]; then
+        # 计算在 modified_words 中的索引：jgp->jj git push (+2), 所以是 CURRENT+2
+        local idx=$((CURRENT + 2))
+        if (( idx <= ${#modified_words[@]} )); then
+            modified_words[idx]="--"
+        fi
     fi
 
     local _CLAP_COMPLETE_INDEX=$((CURRENT + 1))  # 因为增加了 git push 两个词
@@ -249,8 +350,26 @@ function _jgp() {
 
         if (( ${#params[@]} )); then
             log "参数补全 params=${params[@]}"
-            compadd -Q -S ' ' -- "${params[@]}"
-            return
+            # 如果当前输入是 -- 开头，进行模糊过滤
+            if [[ "$current_word" == --* ]]; then
+                local filtered=()
+                local search_term="${current_word#--}"
+                for param in "${params[@]}"; do
+                    local param_without_prefix="${param#--}"
+                    if [[ "${param_without_prefix:l}" == *"${search_term:l}"* ]]; then
+                        filtered+=("$param")
+                    fi
+                done
+                if (( ${#filtered[@]} )); then
+                    compstate[insert]=menu
+                    PREFIX=""
+                    compadd -U -Q -S ' ' -- "${filtered[@]}"
+                    return
+                fi
+            else
+                compadd -Q -S ' ' -- "${params[@]}"
+                return
+            fi
         fi
     fi
 
@@ -266,6 +385,13 @@ function _jsq() {
 
     # 构建 modified_words 数组：将 jsq 转换为 jj squash
     local modified_words=("jj" "squash" "${words[@]:1}")
+
+    # 如果当前词是 -- 开头的参数，替换为 -- 来获取完整列表
+    local current_word="${words[CURRENT]}"
+    if [[ "$current_word" == --* ]]; then
+        # modified_words 比 words 多了一个元素(squash)，所以索引要 +1
+        modified_words[CURRENT+1]="--"
+    fi
 
     # jsq 被替换为 jj squash（net +1 个词），所以 index = CURRENT - 1 + 1 = CURRENT
     local _CLAP_COMPLETE_INDEX=$((CURRENT))
@@ -293,8 +419,26 @@ function _jsq() {
 
         if (( ${#params[@]} )); then
             log "参数补全 params='${params[*]}'"
-            compadd -Q -S ' ' -- "${params[@]}"
-            return
+            # 如果当前输入是 -- 开头，进行模糊过滤
+            if [[ "$current_word" == --* ]]; then
+                local filtered=()
+                local search_term="${current_word#--}"
+                for param in "${params[@]}"; do
+                    local param_without_prefix="${param#--}"
+                    if [[ "${param_without_prefix:l}" == *"${search_term:l}"* ]]; then
+                        filtered+=("$param")
+                    fi
+                done
+                if (( ${#filtered[@]} )); then
+                    compstate[insert]=menu
+                    PREFIX=""
+                    compadd -U -Q -S ' ' -- "${filtered[@]}"
+                    return
+                fi
+            else
+                compadd -Q -S ' ' -- "${params[@]}"
+                return
+            fi
         fi
     fi
 
