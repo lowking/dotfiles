@@ -167,3 +167,5 @@ compdef _jow jow
 compdef _jgp jgp
 compdef _jsq jsq
 compdef _jrb jrb
+
+. "$HOME/.local/bin/env"

@@ -148,3 +148,5 @@ source ~/.bash_alias
 source ~/.path_profile
 source ~/.bash_shortcut
 
+
+. "$HOME/.local/bin/env"
