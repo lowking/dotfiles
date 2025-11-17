@@ -166,3 +166,4 @@ compdef _jd jd
 compdef _jow jow
 compdef _jgp jgp
 compdef _jsq jsq
+compdef _jrb jrb

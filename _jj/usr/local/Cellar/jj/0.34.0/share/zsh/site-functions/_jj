@@ -123,7 +123,7 @@ function _js() {
             fi
         fi
 
-        local _CLAP_COMPLETE_INDEX=$((CURRENT + 1))  # 因为增加了 b s 两个词
+        local _CLAP_COMPLETE_INDEX=$((CURRENT))  # 因为增加了 b s 两个词
         local _CLAP_IFS=$'\n'
 
         local completions
@@ -447,3 +447,72 @@ function _jsq() {
 }
 compdef -d jsq 2>/dev/null
 compdef _jsq jsq
+
+# jrb 使用 jj rebase 的补全
+function _jrb() {
+    log "_jrb 被调用, CURRENT=$CURRENT, words='${words[*]}'"
+
+    # 构建 modified_words 数组：将 jrb 转换为 jj rebase
+    local modified_words=("jj" "rebase" "${words[@]:1}")
+
+    # 如果当前词是 -- 开头的参数，替换为 -- 来获取完整列表
+    local current_word="${words[CURRENT]}"
+    if [[ "$current_word" == --* ]]; then
+        # modified_words 比 words 多了一个元素(rebase)，所以索引要 +1
+        modified_words[CURRENT+1]="--"
+    fi
+
+    # jrb 被替换为 jj rebase（net +1 个词），所以 index = CURRENT - 1 + 1 = CURRENT
+    local _CLAP_COMPLETE_INDEX=$((CURRENT))
+    local _CLAP_IFS=$'\n'
+
+    log "modified_words='${modified_words[*]}', _CLAP_COMPLETE_INDEX=$_CLAP_COMPLETE_INDEX"
+
+    local completions
+    completions=("${(@f)$( \
+        _CLAP_IFS="$_CLAP_IFS" \
+        _CLAP_COMPLETE_INDEX="$_CLAP_COMPLETE_INDEX" \
+        COMPLETE="zsh" \
+        /usr/local/Cellar/jj/0.34.0/bin/jj -- "${modified_words[@]}" 2>/dev/null \
+    )}")
+
+    log "completions count=${#completions[@]}, completions='${completions[*]}'"
+
+    if (( ${#completions[@]} )); then
+        local params=()
+        for item in "${completions[@]}"; do
+            if [[ "$item" == --* || "$item" == *:* ]]; then
+                params+=("${item%%:*}")
+            fi
+        done
+
+        if (( ${#params[@]} )); then
+            log "参数补全 params='${params[*]}'"
+            # 如果当前输入是 -- 开头，进行模糊过滤
+            if [[ "$current_word" == --* ]]; then
+                local filtered=()
+                local search_term="${current_word#--}"
+                for param in "${params[@]}"; do
+                    local param_without_prefix="${param#--}"
+                    if [[ "${param_without_prefix:l}" == *"${search_term:l}"* ]]; then
+                        filtered+=("$param")
+                    fi
+                done
+                if (( ${#filtered[@]} )); then
+                    compstate[insert]=menu
+                    PREFIX=""
+                    compadd -U -Q -S ' ' -- "${filtered[@]}"
+                    return
+                fi
+            else
+                compadd -Q -S ' ' -- "${params[@]}"
+                return
+            fi
+        fi
+    fi
+
+    log "兜底补全"
+    _clap_fallback_path_completion
+}
+compdef -d jrb 2>/dev/null
+compdef _jrb jrb
