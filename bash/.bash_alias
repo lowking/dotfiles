@@ -166,6 +166,7 @@ alias vbc='vim $personal/backup.sh'
 alias vrs='vim $personal/restore.sh'
 alias vhc='vim ~/.ssh/config'
 alias vhosts='sudo vim /etc/hosts'
+alias vse='vim ~/.secret'
 alias iff="open -a Finder ./"
 function fii() {
     local finder_path
