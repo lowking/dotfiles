@@ -57,7 +57,7 @@ function _clap_dynamic_completer_jj() {
         _CLAP_IFS="$_CLAP_IFS" \
         _CLAP_COMPLETE_INDEX="$_CLAP_COMPLETE_INDEX" \
         COMPLETE="zsh" \
-        /usr/local/Cellar/jj/0.34.0/bin/jj -- "${modified_words[@]}" 2>/dev/null \
+        /usr/local/Cellar/jj/0.37.0/bin/jj -- "${modified_words[@]}" 2>/dev/null \
     )}")
 
     if (( ${#completions[@]} )); then
@@ -131,7 +131,7 @@ function _js() {
             _CLAP_IFS="$_CLAP_IFS" \
             _CLAP_COMPLETE_INDEX="$_CLAP_COMPLETE_INDEX" \
             COMPLETE="zsh" \
-            /usr/local/Cellar/jj/0.34.0/bin/jj -- "${modified_words[@]}" 2>/dev/null \
+            /usr/local/Cellar/jj/0.37.0/bin/jj -- "${modified_words[@]}" 2>/dev/null \
         )}")
 
         if (( ${#completions[@]} )); then
@@ -231,7 +231,7 @@ function _jj_custom_complete() {
         _CLAP_IFS="$_CLAP_IFS" \
         _CLAP_COMPLETE_INDEX="$_CLAP_COMPLETE_INDEX" \
         COMPLETE="zsh" \
-        /usr/local/Cellar/jj/0.34.0/bin/jj -- "${modified_words[@]}" 2>/dev/null \
+        /usr/local/Cellar/jj/0.37.0/bin/jj -- "${modified_words[@]}" 2>/dev/null \
     )}")
 
     log "completions count=${#completions[@]}, completions=${completions[*]}"
@@ -335,7 +335,7 @@ function _jgp() {
         _CLAP_IFS="$_CLAP_IFS" \
         _CLAP_COMPLETE_INDEX="$_CLAP_COMPLETE_INDEX" \
         COMPLETE="zsh" \
-        /usr/local/Cellar/jj/0.34.0/bin/jj -- "${modified_words[@]}" 2>/dev/null \
+        /usr/local/Cellar/jj/0.37.0/bin/jj -- "${modified_words[@]}" 2>/dev/null \
     )}")
 
     log "completions count=${#completions[@]}, completions=${completions[@]}"
@@ -404,7 +404,7 @@ function _jsq() {
         _CLAP_IFS="$_CLAP_IFS" \
         _CLAP_COMPLETE_INDEX="$_CLAP_COMPLETE_INDEX" \
         COMPLETE="zsh" \
-        /usr/local/Cellar/jj/0.34.0/bin/jj -- "${modified_words[@]}" 2>/dev/null \
+        /usr/local/Cellar/jj/0.37.0/bin/jj -- "${modified_words[@]}" 2>/dev/null \
     )}")
 
     log "completions count=${#completions[@]}, completions='${completions[*]}'"
@@ -473,7 +473,7 @@ function _jrb() {
         _CLAP_IFS="$_CLAP_IFS" \
         _CLAP_COMPLETE_INDEX="$_CLAP_COMPLETE_INDEX" \
         COMPLETE="zsh" \
-        /usr/local/Cellar/jj/0.34.0/bin/jj -- "${modified_words[@]}" 2>/dev/null \
+        /usr/local/Cellar/jj/0.37.0/bin/jj -- "${modified_words[@]}" 2>/dev/null \
     )}")
 
     log "completions count=${#completions[@]}, completions='${completions[*]}'"
