@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
-# 定时抢永辉券 >2025-11-17 20:59:59 900
-gdate '+%Y-%m-%d %H:%M:%S.%3N' && sleep 0.5 && gdate '+%Y-%m-%d %H:%M:%S.%3N'
+# 定时抢永辉券 >2025-11-21 18:59:59 500
+gdate '+%Y-%m-%d %H:%M:%S.%3N'
 
 # 从剪辑版复制文本存入cookie文件, 然后执行斗鱼自动送礼
 douyuCookieFile=/Users/lowking/douyu-gift/config/cookie.txt
@@ -20,11 +20,16 @@ ssh docker "
 docker run --rm --env NO_IP_USERNAME=$NO_IP_USERNAME --env NO_IP_PASSWORD=$NO_IP_PASSWORD --env NO_IP_TOTP_KEY=$NO_IP_TOTP_KEY simaofsilva/noip-renewer:latest
 "
 
+# 视频移到plex并给予权限
+scp $dl/temp/*.mp4 root@plex:/mnt/media/games
+ssh plex "chown -R plex:plex \"/mnt/media/games/\""
+
 # plex hd list
 ssh plex "
 ls -alh /mnt/media/hd
 "
 
+# 触发监控的fswatch, 传输监控画面
 dir=/home/ispy/media/video/c6cn/grabs
 ssh lksony "
 ps -ef|grep -i fswatch |grep -Ev \"grep|log\"
@@ -43,3 +48,7 @@ whoami
 systemctl restart fs
 EOSU
 "
+
+# 土地庙
+1149250
+162760
