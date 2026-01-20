@@ -19,6 +19,7 @@ alias csur='sshpass -p $hostpwd ssh surgio -l root'
 alias cgit='sshpass -p $hostpwd ssh gitserver -l root'
 alias cbot='sshpass -p $hostpwd ssh bot -l root'
 alias cop='sshpass -p $hostpwd ssh openwrt -l root'
+alias cyc='sshpass -p $hostpwd_yc ssh yc -l root'
 
 # 终端打开
 alias music='open -a /Applications/NeteaseMusic.app ${1}'
